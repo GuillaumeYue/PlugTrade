@@ -7,12 +7,40 @@
 
 import SwiftUI
 
-struct TabView: View {
+struct MainTabView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        TabView {
+            HomeScreen()
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text("Home")
+                }
+            SearchScreen()
+                .tabItem {
+                    Image(systemName: "magnifyingglass")
+                    Text("Search")
+                }
+            ListProductScreen()
+                .tabItem {
+                    Image(systemName: "plus.circle")
+                    Text("List")
+                }
+            TradeScreen()
+                .tabItem {
+                    Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90.circle.fill")
+                    Text("Trade")
+                }
+            ProfileScreen()
+                .tabItem {
+                    Image(systemName: "person.crop.circle.fill")
+                    Text("Profile")
+                }
+            
+           
+        }
     }
 }
 
 #Preview {
-    TabView()
+    MainTabView()
 }

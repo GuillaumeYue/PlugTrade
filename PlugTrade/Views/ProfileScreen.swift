@@ -6,10 +6,36 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct ProfileScreen: View {
+
+    @EnvironmentObject var authManager: AuthManager
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            Text("Profile Screen")
+            
+            Button(action: {
+               
+                authManager.signOut()
+            }) {
+                Text("Sign Out")
+                    .fontWeight(.bold)
+                    .padding()
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color.blue.opacity(0.8))
+                            
+                    )
+                   
+            }
+            .padding(.horizontal)
+            
+        }
+       
     }
 }
 
