@@ -8,17 +8,24 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @EnvironmentObject var authManager: AuthManager
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            if authManager.user != nil {
+               //HomeView
+                MainTabView()
+           }
+           else {
+               //show login or register view
+               RegisterForm()
+           }
         }
-        .padding()
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(AuthManager())
 }
