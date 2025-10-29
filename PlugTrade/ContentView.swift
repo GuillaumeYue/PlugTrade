@@ -13,15 +13,15 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            if authManager.user != nil {
-               //HomeView
+            if authManager.firebaseUser == nil {
+                RegisterForm()
+            }
+            else {
                 MainTabView()
-           }
-           else {
-               //show login or register view
-               RegisterForm()
-           }
+            }
         }
+       
+
     }
 }
 

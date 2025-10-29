@@ -6,34 +6,92 @@
 //
 
 import Foundation
-import Combine
-import FirebaseAuth
 import FirebaseFirestore
-import FirebaseStorage
+import Combine
 
-final class FirebaseViewModel: ObservableObject {
-    @Published var currentAppUser: AppUser?
+
+class FirebaseViewModel: ObservableObject {
+    
+    
+    static let shared = FirebaseViewModel()
+    
     private let db = Firestore.firestore()
-    private let storage = Storage.storage()
-
-    func loadCurrentAppUser() {
-        guard let authUser = Auth.auth().currentUser else { currentAppUser = nil; return }
-        db.collection("users").document(authUser.uid).getDocument { snap, _ in
-            if let data = snap?.data(),
-               let email = data["email"] as? String {
-                self.currentAppUser = AppUser(uid: authUser.uid,
-                                              email: email,
-                                              displayName: data["displayName"] as? String,
-                                              avatarURL: data["avatarURL"] as? String,
-                                              createdAt: (data["createdAt"] as? Timestamp)?.dateValue() ?? Date())
-            } else {
-                // 首次登录可自动建档
-                let new = AppUser(uid: authUser.uid, email: authUser.email ?? "")
-                self.currentAppUser = new
-                try? self.db.collection("users").document(authUser.uid).setData(from: new)
+    
+    @Published var user: [User] = []
+    
+    
+    
+    init() {
+        fetchUsers()
+    }
+    
+    
+    //fetch users
+    func fetchUsers() {
+        db.collection("users").addSnapshotListener{querySnapshot, error in
+           if let error = error {
+                
+               print("\(error.localizedDescription)")
+            }
+            self.user = querySnapshot?.documents.compactMap({document in
+                try? document.data(as: User.self)
+            }) ?? []
+            
+            
+        }
+    }
+    
+    
+    func fetchUser(id: String, completion: @escaping (User?) -> Void) {
+        db.collection("users").document(id).getDocument { documentSnapshot, error in
+            if let error = error {
+                print("Error fetching user: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+            
+            guard let document = documentSnapshot, document.exists else {
+                print("User not found")
+                completion(nil)
+                return
+            }
+            
+            do {
+                let user = try document.data(as: User.self)
+                completion(user)
+            } catch {
+                print("Error decoding user: \(error.localizedDescription)")
+                completion(nil)
             }
         }
     }
 
-    // TODO: 后续加：upload user icon、upload product、search product......
+    
+    //save user
+    func addUser(user: User){
+        let newUser = User(id: user.id,name: user.name, email: user.email, profilePictureURL: user.profilePictureURL ?? "")
+        do{
+            try db.collection("users").document(user.id).setData(from: newUser)
+        }catch{
+            print(error.localizedDescription)
+        }
+    }
+    
+    
+    //update user
+    func updateUser(user: User, name: String, email: String, profilePictureURL: String?){
+        let userID = user.id
+        db.collection( "users" ).document( userID ).updateData(["name": name, "email": email, "profilePictureURL": profilePictureURL])
+    }
+    
+    //function delete user
+    func deleteUser(user: User){
+    let userID = user.id
+        db.collection( "users" ).document( userID ).delete{
+            error in
+            if let error = error {
+                print(error.localizedDescription)
+            }
+        }
+    }
 }

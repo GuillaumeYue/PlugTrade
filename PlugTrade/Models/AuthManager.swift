@@ -8,20 +8,22 @@
 import Foundation
 import Combine
 import FirebaseAuth
+import FirebaseFirestore
 
 class AuthManager: ObservableObject {
     
-    @Published var user: User?
+    @Published var firebaseUser: FirebaseAuth.User?
+    @Published var isProfileComplete: Bool = false
         //published states if this variable changes, rerender the ui
     
     init(){
-        self.user = Auth.auth().currentUser // saves the user
+        self.firebaseUser = Auth.auth().currentUser // saves the user
     }
     
     
     
     //register function
-    func register(email: String, password: String, completion: @escaping (Result<User, Error>) ->Void){
+    func register(email: String, password: String, completion: @escaping (Result<FirebaseAuth.User, Error>) ->Void){
         
         
         
@@ -30,7 +32,7 @@ class AuthManager: ObservableObject {
                 completion(.failure(error))
                 
             }else if let user = result?.user {
-                self.user = user
+                self.firebaseUser = user
                 completion(.success(user))
             }
             
@@ -38,16 +40,17 @@ class AuthManager: ObservableObject {
     }
     
     
+    
     //login function
     
-    func login(email: String, password: String, completion: @escaping (Result<User, Error>) -> Void){
+    func login(email: String, password: String, completion: @escaping (Result<FirebaseAuth.User, Error>) -> Void){
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
             
             if let error = error {
                 completion(.failure(error))
             }else if let user = result?.user {
                 completion(.success(user))
-                self.user = user
+                self.firebaseUser = user
             }
         }
     }
@@ -59,7 +62,7 @@ class AuthManager: ObservableObject {
     func signOut(){
         do {
             try Auth.auth().signOut()
-            self.user = nil
+            self.firebaseUser = nil
         } catch {
             print("Error signing out: \(error)")
         }
