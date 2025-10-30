@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,11 +18,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		54224FFD2EAC73F100969F8A /* PlugTrade */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = PlugTrade;
-			sourceTree = "<group>";
-		};
+		54224FFD2EAC73F100969F8A /* PlugTrade */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PlugTrade; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +105,7 @@
 				};
 			};
 			buildConfigurationList = 54224FF62EAC73F100969F8A /* Build configuration list for PBXProject "PlugTrade" */;
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -120,7 +117,6 @@
 			packageReferences = (
 				5422500D2EAC7FA600969F8A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 54224FFC2EAC73F100969F8A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
