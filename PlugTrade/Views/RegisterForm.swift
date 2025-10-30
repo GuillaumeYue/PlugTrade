@@ -124,7 +124,7 @@ struct RegisterForm: View {
                     switch result {
                     case .success(let user):
                         print("User Registered")
-                        let newUser = User(
+                        let newUser = appUser(
                             id: user.uid, // to the user in authentication
                             name: name,
                             email: email,

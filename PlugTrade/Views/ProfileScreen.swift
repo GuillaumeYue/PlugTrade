@@ -92,28 +92,15 @@ struct ProfileScreen: View {
                         .cornerRadius(15)
                     }
                     
-                    // Products for Sale button
-                    Button(action: {
-                        print("Products for Sale tapped")
-                    }) {
-                        HStack {
-                            Image(systemName: "cart")
-                            Text("Products for Sale")
-                                .fontWeight(.medium)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green.opacity(0.2))
-                        .cornerRadius(15)
-                    }
+                   
                     
                     // Products Trade button
                     Button(action: {
-                        print("Products Trade tapped")
+                       
                     }) {
                         HStack {
                             Image(systemName: "arrow.2.squarepath")
-                            Text("Products Trade")
+                            Text("My Products")
                                 .fontWeight(.medium)
                         }
                         .padding()
@@ -123,7 +110,7 @@ struct ProfileScreen: View {
                     }
                     
                     // Sign Out button
-                    Button(action: {
+                    Button( role: .destructive, action: {
                         authManager.signOut()
                     }) {
                         Text("Sign Out")
@@ -131,7 +118,7 @@ struct ProfileScreen: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.red.opacity(0.5))
+                    .background(Color.red.opacity(0.2))
                     .cornerRadius(15)
                 }
                 .padding()

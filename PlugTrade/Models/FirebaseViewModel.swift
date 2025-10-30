@@ -17,7 +17,7 @@ class FirebaseViewModel: ObservableObject {
     
     private let db = Firestore.firestore()
     
-    @Published var user: [User] = []
+    @Published var user: [appUser] = []
     
     
     
@@ -34,7 +34,7 @@ class FirebaseViewModel: ObservableObject {
                print("\(error.localizedDescription)")
             }
             self.user = querySnapshot?.documents.compactMap({document in
-                try? document.data(as: User.self)
+                try? document.data(as: appUser.self)
             }) ?? []
             
             
@@ -42,7 +42,7 @@ class FirebaseViewModel: ObservableObject {
     }
     
     
-    func fetchUser(id: String, completion: @escaping (User?) -> Void) {
+    func fetchUser(id: String, completion: @escaping (appUser?) -> Void) {
         db.collection("users").document(id).getDocument { documentSnapshot, error in
             if let error = error {
                 print("Error fetching user: \(error.localizedDescription)")
@@ -57,7 +57,7 @@ class FirebaseViewModel: ObservableObject {
             }
             
             do {
-                let user = try document.data(as: User.self)
+                let user = try document.data(as: appUser.self)
                 completion(user)
             } catch {
                 print("Error decoding user: \(error.localizedDescription)")
@@ -68,8 +68,8 @@ class FirebaseViewModel: ObservableObject {
 
     
     //save user
-    func addUser(user: User){
-        let newUser = User(id: user.id,name: user.name, email: user.email, profilePictureURL: user.profilePictureURL ?? "")
+    func addUser(user: appUser){
+        let newUser = appUser(id: user.id,name: user.name, email: user.email, profilePictureURL: user.profilePictureURL ?? "")
         do{
             try db.collection("users").document(user.id).setData(from: newUser)
         }catch{
@@ -79,13 +79,13 @@ class FirebaseViewModel: ObservableObject {
     
     
     //update user
-    func updateUser(user: User, name: String, email: String, profilePictureURL: String?){
+    func updateUser(user: appUser, name: String, email: String, profilePictureURL: String?){
         let userID = user.id
         db.collection( "users" ).document( userID ).updateData(["name": name, "email": email, "profilePictureURL": profilePictureURL])
     }
     
     //function delete user
-    func deleteUser(user: User){
+    func deleteUser(user: appUser){
     let userID = user.id
         db.collection( "users" ).document( userID ).delete{
             error in

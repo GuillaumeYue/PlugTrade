@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		542250102EAC7FD100969F8A /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5422500F2EAC7FD100969F8A /* FirebaseFirestore */; };
 		542250122EAC7FD600969F8A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 542250112EAC7FD600969F8A /* FirebaseCore */; };
+		54F6E2F42EB3E2C900E61528 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 54F6E2F32EB3E2C900E61528 /* FirebaseAuth */; };
+		54F6E2F62EB3E37600E61528 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 54F6E2F52EB3E37600E61528 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +27,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				542250122EAC7FD600969F8A /* FirebaseCore in Frameworks */,
+				54F6E2F62EB3E37600E61528 /* FirebaseStorage in Frameworks */,
+				54F6E2F42EB3E2C900E61528 /* FirebaseAuth in Frameworks */,
 				542250102EAC7FD100969F8A /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -78,6 +82,8 @@
 			packageProductDependencies = (
 				5422500F2EAC7FD100969F8A /* FirebaseFirestore */,
 				542250112EAC7FD600969F8A /* FirebaseCore */,
+				54F6E2F32EB3E2C900E61528 /* FirebaseAuth */,
+				54F6E2F52EB3E37600E61528 /* FirebaseStorage */,
 			);
 			productName = PlugTrade;
 			productReference = 54224FFB2EAC73F100969F8A /* PlugTrade.app */;
@@ -362,6 +368,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5422500D2EAC7FA600969F8A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		54F6E2F32EB3E2C900E61528 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5422500D2EAC7FA600969F8A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		54F6E2F52EB3E37600E61528 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5422500D2EAC7FA600969F8A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

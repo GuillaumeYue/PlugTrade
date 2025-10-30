@@ -86,7 +86,7 @@ struct ProfileEditView: View {
                 Task{
                     guard let currentUID = Auth.auth().currentUser?.uid else {return}
                     
-                    let updatedUser = User(id: currentUID, name: userName, email: userEmail)
+                    let updatedUser = appUser(id: currentUID, name: userName, email: userEmail)
                     
                     firebaseManager.updateUser(
                         user: updatedUser,
