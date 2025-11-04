@@ -1,8 +1,16 @@
 //
-//  ProductRepository.swift
+//  ProductRepositoryType 2.swift
 //  PlugTrade
 //
-//  Created by Frostmourne on 2025-11-02.
+//  Created by Frostmourne on 2025-11-04.
+//
+
+
+//
+//  ProductRepositoryType.swift
+//  PlugTrade
+//
+//  Created by Frostmourne on 2025-11-04.
 //
 
 import Foundation
