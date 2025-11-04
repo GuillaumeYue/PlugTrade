@@ -8,6 +8,10 @@
 import SwiftUI
 
 struct MainTabView: View {
+    
+    @StateObject private var cartManager = FirebaseCartManager()
+    @StateObject private var productManager = ProductManager.shared
+    
     var body: some View {
         TabView {
             HomeScreen()
@@ -38,9 +42,12 @@ struct MainTabView: View {
             
            
         }
+        .environmentObject(cartManager)
+        .environmentObject(productManager)
     }
 }
 
 #Preview {
     MainTabView()
+       
 }

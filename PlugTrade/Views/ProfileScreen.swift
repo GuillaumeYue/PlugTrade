@@ -11,9 +11,6 @@ import FirebaseCore
 
 struct ProfileScreen: View {
     
-    // Shared Firebase view model instance
-    @StateObject private var firebaseManager = FirebaseViewModel.shared
-    
     // User-related state variables
     @State private var userName: String = ""
     @State private var userEmail: String = ""
@@ -23,9 +20,10 @@ struct ProfileScreen: View {
     // Navigation and authentication state variables
     @State private var profileedit: Bool = false
     @State private var loggedOut: Bool = false
+    @State private var myproducts: Bool = false
     
     // Access to authentication manager
-    @EnvironmentObject var authManager: AuthManager
+    @ObservedObject private var authManager = AuthService.shared
     
     var body: some View {
         
@@ -33,39 +31,41 @@ struct ProfileScreen: View {
             
             // MARK: - User Info Section
             VStack {
-                Spacer()
-                    .frame(height: 100)
+                Spacer().frame(height: 100)
                 
-                // Placeholder profile image (can be replaced with user's image)
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 120, height: 120)
-                    .clipShape(Circle())
-                    .background(
-                        Circle()
-                            .fill(Color.black.opacity(0.2))
-                    )
-                
-                // Display user's name, email, and join date
-                Text("Name : \(userName)")
-                Text("Email : \(userEmail)")
-                
-            }
-            // Fetch current user details when the view appears
-            .onAppear {
-                if let currentUID = Auth.auth().currentUser?.uid {
-                    Task {
-                        firebaseManager.fetchUser(id: currentUID) { user in
-                            if let user = user {
-                                userName = user.name
-                                userEmail = user.email
-                             
-                            }
-                        }
+                // Use currentUser's profile image if available
+                if let urlString = authManager.currentUser?.profilePictureURL,
+                   let url = URL(string: urlString) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
+                    } placeholder: {
+                        ProgressView()
+                            .frame(width: 120, height: 120)
                     }
+                } else {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 120, height: 120)
+                        .foregroundColor(.gray.opacity(0.6))
+                        .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
                 }
+                
+                Text(authManager.currentUser?.name ?? "Anonymous")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .padding(.top, 5)
+                
+                Text(authManager.currentUser?.email ?? "test@gmail.com")
+                    .foregroundColor(.gray)
+                    .padding(.bottom, 10)
             }
+         
             
             Spacer()
             
@@ -96,9 +96,11 @@ struct ProfileScreen: View {
                     
                     // Products Trade button
                     Button(action: {
-                       
+                       myproducts = true
                     }) {
                         HStack {
+                            NavigationLink(destination: MyProducts(), isActive: $myproducts) { EmptyView() }
+                            
                             Image(systemName: "arrow.2.squarepath")
                             Text("My Products")
                                 .fontWeight(.medium)

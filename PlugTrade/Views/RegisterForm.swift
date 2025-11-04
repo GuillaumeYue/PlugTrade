@@ -16,156 +16,117 @@ struct RegisterForm: View {
     @State private var password = ""
     @State private var error: String?
     @State private var profileImage: String = ""
-    @State private var joined: Timestamp? = nil
     @State private var showingImagePicker = false
     @State private var imageData: Data? = nil
-    @EnvironmentObject var authManager: AuthManager
-    @StateObject private var firebaseManager = FirebaseViewModel.shared
+    @StateObject private var authManager = AuthService.shared
     
     
     
     var body: some View {
         VStack {
+          
             Text("PlugTrade")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding()
             
-            
-            ZStack(alignment: .bottomTrailing) {
-                if let url = URL(string: profileImage), !profileImage.isEmpty {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 120, height: 120)
-                            .clipShape(Circle())
-                    } placeholder: {
-                        ProgressView()
-                    }
-                } else {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 120, height: 120)
-                        .foregroundColor(.gray)
-                }
-                
-                
-                
-                
-                ZStack(alignment: .bottomTrailing) {
-                    
-                    if let data = imageData,
-                       let uiImage = UIImage(data: data) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 120, height: 120)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
-                    } else if let url = URL(string: profileImage), !profileImage.isEmpty {
+            Form{
+                Section("Create Account"){
+                   
+                    HStack{
+                        Spacer()
+                        ZStack(alignment: .bottomTrailing) {
+                            if let url = URL(string: profileImage), !profileImage.isEmpty {
+                                AsyncImage(url: url) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 120, height: 120)
+                                        .clipShape(Circle())
+                                } placeholder: {
+                                    ProgressView()
+                                }
+                            } else {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 120, height: 120)
+                                    .foregroundColor(.gray)
+                            }
+                            
                         
-                        AsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 120, height: 120)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
-                        } placeholder: {
-                            ProgressView()
-                                .frame(width: 120, height: 120)
                         }
-                    } else {
-                        
-                        Image(systemName: "person.crop.circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 120, height: 120)
-                            .foregroundColor(.gray.opacity(0.6))
+                        .padding()
+                        Spacer()
                     }
+                   
+                    
+                    TextField("Display Name", text: $name)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
                     
                     
-                    ImageUploadButton(selectedImageData: $imageData) { url in
-                        profileImage = url
+                    TextField("Email", text: $email)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+                        .keyboardType(.emailAddress)
+                    
+                    SecureField("Password", text: $password)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
+                
+                
+                
+                if let error = error {
+                    Text(error)
+                        .foregroundColor(.red)
+                }
+                
+                
+                Button("Register"){
+                    
+                    guard Validators.isValidEmail(email) else {
+                        self.error = "Invalid email format"
+                        return
                     }
-                    .offset(x: 5, y: 5)
-                }
-                .padding(.top)
-                
-            }
-            .padding()
-            
-            TextField("Display Name", text: $name)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-            
-            TextField("Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-            
-            SecureField("Password", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            
-            
-            if let error = error {
-                Text(error)
-                    .foregroundColor(.red)
-            }
-            
-            Button(action: {
-                if password.isEmpty || email.isEmpty || name.isEmpty{
-                    self.error = "Please fill in all fields"
-                    return
-                }
-                
-                authManager.register(email: email, password: password) { result in
-                    switch result {
-                    case .success(let user):
-                        print("User Registered")
-                        let newUser = appUser(
-                            id: user.uid, // to the user in authentication
-                            name: name,
-                            email: email,
-                            profilePictureURL: profileImage
-                        )
-                        firebaseManager.addUser(user: newUser)
-                        
-                        
-                    case .failure(let error):
-                        self.error = error.localizedDescription
-                        print(error.localizedDescription)
+                    
+                    guard Validators.isValidPassword(password) else {
+                        self.error = "Password must be at least 8 characters long"
+                        return
                     }
-                }
-            }) {
-                Text("Register")
-                    .fontWeight(.bold)
-                    .padding()
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(Color.blue.opacity(0.8))
+                    
+                    guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+                        self.error = "Please enter a display name"
+                        return
+                    }
+                    
+                    authManager.register(name: name, email: email, password: password, profilePictureURL: profileImage){
+                        result in
+                        switch result {
+                        case .success:
+                            self.error = nil
+                        case .failure(let failure):
+                            self.error = failure.localizedDescription
+                    }
+                  
                         
-                    )
-                
-            }
-            .padding(.horizontal)
-            
-            
-            
-            HStack {
-                Text("Already have an account?")
-                NavigationLink(destination: LoginForm()) {
-                    Text("Login")
-                        .foregroundStyle(.blue)
+                    }
+                    
                 }
+                .padding(.horizontal)
+                .disabled(email.isEmpty || password.isEmpty || name.isEmpty)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue)
+                .cornerRadius(15)
+                .foregroundStyle(Color.white)
+                
+              
+            
             }
-            
-            
-            
-            
+ 
             
             
         }

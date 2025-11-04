@@ -20,11 +20,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct PlugTradeApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject var cartManager = CartManager()
+    @StateObject var productManager = ProductManager()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(AuthManager())
+                .environmentObject(cartManager)
+                               .environmentObject(productManager)
+               
         }
     }
 }

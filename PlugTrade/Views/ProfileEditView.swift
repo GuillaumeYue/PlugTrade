@@ -1,10 +1,3 @@
-//
-//  ProfileEditView.swift
-//  PlugTrade
-//
-//  Created by Shaquille O Neil on 2025-10-27.
-//
-
 import SwiftUI
 import FirebaseCore
 import FirebaseAuth
@@ -12,123 +5,120 @@ import FirebaseStorage
 
 struct ProfileEditView: View {
     
-    @StateObject private var firebaseManager = FirebaseViewModel.shared
-    @EnvironmentObject var authManager: AuthManager
+    @StateObject private var authManager = AuthService.shared
     
-    @State private var currentUser: User? = nil
+    @State private var currentUser: appUser? = nil
     @State private var userName: String = ""
-    @State private var userEmail: String = ""
     @State private var profileImage: URL? = nil
-    @State private var showingImagePicker = false
     @State private var imageData: Data? = nil
-    @State private var navigateToHome = false
+    @State private var errorMessage: String? = nil
     @State private var showSuccessAlert = false
     
     var body: some View {
         VStack(spacing: 20) {
             
-            Spacer()
+            Text("Edit Profile")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .padding(.top, 20)
             
-            //Profile Image with Upload Button
-            ZStack(alignment: .bottomTrailing) {
-                if let data = imageData,
-                   let uiImage = UIImage(data: data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 120, height: 120)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
-                } else if let url = profileImage {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 120, height: 120)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
-                    } placeholder: {
-                        ProgressView()
-                            .frame(width: 120, height: 120)
+            // MARK: Form
+            Form {
+                Section("Profile") {
+                    
+                    HStack {
+                        Spacer()
+                        
+                        ZStack(alignment: .bottomTrailing) {
+                            if let data = imageData, let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 120, height: 120)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                            } else if let url = profileImage {
+                                AsyncImage(url: url) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 120, height: 120)
+                                        .clipShape(Circle())
+                                        .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                                } placeholder: {
+                                    ProgressView()
+                                        .frame(width: 120, height: 120)
+                                }
+                            } else {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 120, height: 120)
+                                    .foregroundColor(.gray.opacity(0.6))
+                            }
+                            
+                            ImageUploadButton(selectedImageData: $imageData) { url in
+                                if let imageURL = URL(string: url) {
+                                    profileImage = imageURL
+                                }
+                            }
+                            .offset(x: 10, y: 10)
+                        }
+                        Spacer()
                     }
-                } else {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 120, height: 120)
-                        .foregroundColor(.gray.opacity(0.6))
+                    .padding(.vertical, 20)
+                    
+                    TextField("Name", text: $userName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
+                        .padding(.vertical, 5)
                 }
-
-                // Upload Button Overlay
-                ImageUploadButton(selectedImageData: $imageData) { url in
-                    if let imageURL = URL(string: url) {
-                        profileImage = imageURL
+            }
+            .padding(.horizontal, 20)
+            
+            // MARK: Save Button immediately under form
+            Button("Save") {
+                guard !userName.trimmingCharacters(in: .whitespaces).isEmpty else {
+                    self.errorMessage = "Name is required"
+                    return
+                }
+                authManager.updateUser(name: userName, profilePictureURL: profileImage?.absoluteString) { result in
+                    switch result {
+                    case .success:
+                        userName = ""
+                        self.errorMessage = ""
+                    case .failure(let failure):
+                        self.errorMessage = failure.localizedDescription
                     }
                 }
-                .offset(x: 10, y: 10)
+                
+                showSuccessAlert = true
             }
-            .padding(.top, 30)
-
-            //Text Fields
-            VStack(alignment: .leading, spacing: 15) {
-                TextField("Name", text: $userName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .autocapitalization(.none)
-
-                TextField("Email", text: $userEmail)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .autocapitalization(.none)
-            }
+            .disabled(userName.isEmpty)
             .padding(.horizontal, 40)
-
-            // Save Button
-            Button(action: {
-                Task{
-                    guard let currentUID = Auth.auth().currentUser?.uid else {return}
-                    
-                    let updatedUser = appUser(id: currentUID, name: userName, email: userEmail)
-                    
-                    firebaseManager.updateUser(
-                        user: updatedUser,
-                        name: userName,
-                        email: userEmail,
-                        profilePictureURL: profileImage?.absoluteString ?? "")
-                    
-                    showSuccessAlert = true
-                    
-                }
-            }) {
-                Text("Save Changes")
-                    .font(.headline)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
+            .padding(.vertical, 12)
+            .frame(width: 200)
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(15)
+            
+            // MARK: Error Message
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 5)
+                    .padding(.horizontal, 40)
             }
-            .padding(.horizontal, 40)
-            .padding(.top, 10)
-
-            Spacer()
+            
+            Spacer() // optional, keep form and button at top
         }
         .alert("Profile updated successfully", isPresented: $showSuccessAlert) {
             Button("OK", role: .cancel) { }
         }
-        .onAppear {
-            if let currentUID = Auth.auth().currentUser?.uid {
-                Task {
-                    firebaseManager.fetchUser(id: currentUID) { user in
-                        if let user = user {
-                            userName = user.name
-                            userEmail = user.email
-                        }
-                    }
-                }
-            }
-        }
     }
-
 }
+
 #Preview {
     ProfileEditView()
 }
