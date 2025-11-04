@@ -8,8 +8,24 @@
 import SwiftUI
 
 struct MyProducts: View {
+    @State private var showsaleproducts: Bool = true
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            Picker("", selection: $showsaleproducts) {
+                Text("Products for sale").tag(true)
+                Text("Products for trade").tag(false)
+            }.pickerStyle(.segmented)
+                .padding()
+            
+            if showsaleproducts{
+                ProductsForSale()
+                    .environmentObject(ProductManager())
+            }else{
+                ProductsForTrade()
+            }
+            
+        }
     }
 }
 

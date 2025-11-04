@@ -1,27 +1,13 @@
-//
-//  ImageUploadButton.swift
-//  PlugTrade
-//
-//  Created by Shaquille O Neil on 2025-10-28.
-//
-
-//
-//  ImageUploadButton.swift
-//  PlugTrade
-//
-//  Created by Shaquille O Neil on 2025-10-28.
-//
-
 import SwiftUI
-import PhotosUI
 import FirebaseStorage
 import FirebaseAuth
+import UIKit
 
 struct ImageUploadButton: View {
     @Binding var selectedImageData: Data?
     var onUploadComplete: ((String) -> Void)? = nil
 
-    @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var showPicker = false
     @State private var isUploading = false
 
     var body: some View {
@@ -30,11 +16,7 @@ struct ImageUploadButton: View {
                 ProgressView()
                     .frame(width: 35, height: 35)
             } else {
-                PhotosPicker(
-                    selection: $selectedItem,
-                    matching: .images,
-                    photoLibrary: .shared()
-                ) {
+                Button(action: { showPicker = true }) {
                     ZStack {
                         Circle()
                             .fill(Color.blue)
@@ -44,11 +26,12 @@ struct ImageUploadButton: View {
                             .font(.system(size: 20, weight: .bold))
                     }
                 }
-                .onChange(of: selectedItem) { newItem in
-                    Task {
-                        if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                            selectedImageData = data
-                            await uploadToFirebaseStorage(data: data)
+                .sheet(isPresented: $showPicker) {
+                    UIImagePickerControllerWrapper(selectedImageData: $selectedImageData) { data in
+                        Task {
+                            if let data {
+                                await uploadToFirebaseStorage(data: data)
+                            }
                         }
                     }
                 }
@@ -75,9 +58,45 @@ struct ImageUploadButton: View {
     }
 }
 
+// MARK: UIImagePickerController wrapper
+struct UIImagePickerControllerWrapper: UIViewControllerRepresentable {
+    @Binding var selectedImageData: Data?
+    var completion: (Data?) -> Void
 
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let parent: UIImagePickerControllerWrapper
+        init(_ parent: UIImagePickerControllerWrapper) { self.parent = parent }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let uiImage = info[.originalImage] as? UIImage {
+                let data = uiImage.jpegData(compressionQuality: 0.8)
+                parent.selectedImageData = data
+                parent.completion(data)
+            }
+            picker.dismiss(animated: true)
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
+        }
+    }
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .photoLibrary
+        picker.allowsEditing = false
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+}
 
 #Preview {
     @State var sampleData: Data? = nil
-    return ImageUploadButton(selectedImageData: .constant(sampleData))
+    return ImageUploadButton(selectedImageData: .constant(sampleData)) { url in
+        print("Uploaded URL: \(url)")
+    }
 }

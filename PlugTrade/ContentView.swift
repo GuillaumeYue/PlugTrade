@@ -8,18 +8,27 @@
 import SwiftUI
 
 struct ContentView: View {
-    
-    @EnvironmentObject var authManager: AuthManager
-    
+    @StateObject var authManager = AuthService.shared
+    @State private var isLoaded = false
     var body: some View {
         NavigationView {
-            if authManager.firebaseUser == nil {
-                RegisterForm()
-            }
-            else {
-                MainTabView()
+            Group {
+                if !isLoaded {
+                    ProgressView()
+                        .onAppear {
+                            authManager.fetchUser { _ in
+                                isLoaded = true
+                            }
+                        }
+                } else  if authManager.currentUser == nil{
+                    AuthGate()
+                }else{
+                    MainTabView()
+                }
             }
         }
+       
+        
        
 
     }
@@ -27,5 +36,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(AuthManager())
+       
 }
