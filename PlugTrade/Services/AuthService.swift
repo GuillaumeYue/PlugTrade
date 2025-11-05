@@ -9,8 +9,8 @@ import Foundation
 import Combine
 import FirebaseAuth
 import FirebaseFirestore
-
-
+import FirebaseStorage
+import SwiftUI
 
 class AuthService: ObservableObject {
     
@@ -20,148 +20,184 @@ class AuthService: ObservableObject {
     
     private let db = Firestore.firestore()
     
-    //MARK: REGISTER
-    func register(name: String, email: String, password: String, profilePictureURL: String?, completion: @escaping (Result<appUser, Error>) -> Void) {
-
-        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+    // MARK: - REGISTER
+    func register(name: String, email: String, password: String, profileImageData: Data?, completion: @escaping (Result<appUser, Error>) -> Void) {
             
+            Auth.auth().createUser(withEmail: email, password: password) { result, error in
+                
+                if let error = error {
+                    return completion(.failure(error))
+                }
+                
+                guard let user = result?.user else {
+                    return completion(.failure(SimpleError("Unable to create user")))
+                }
+                
+                let uid = user.uid
+                
+                // Function to create appUser and save to Firestore
+                func saveUser(profileURL: String?) {
+                    let appUser = appUser(
+                        id: uid,
+                        name: name,
+                        email: email,
+                        profilePictureURL: profileURL ?? "https://via.placeholder.com/150"
+                    )
+                    
+                    do {
+                        try self.db.collection("users").document(uid).setData(from: appUser) { error in
+                            if let error = error {
+                                return completion(.failure(error))
+                            }
+                            DispatchQueue.main.async {
+                                self.currentUser = appUser
+                            }
+                            completion(.success(appUser))
+                        }
+                    } catch {
+                        completion(.failure(error))
+                    }
+                }
+                
+                // If an image is provided, upload first
+                if let data = profileImageData {
+                    self.uploadProfileImage(uid: uid, data: data) { result in
+                        switch result {
+                        case .success(let urlString):
+                            saveUser(profileURL: urlString)
+                        case .failure(let error):
+                            completion(.failure(error))
+                        }
+                    }
+                } else {
+                    // No image, save directly
+                    saveUser(profileURL: nil)
+                }
+            }
+        }
+    
+    // MARK: - LOGIN
+    func login(email: String, password: String, completion: @escaping (Result<appUser, Error>) -> Void) {
+        
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
             if let error = error {
-                return completion(.failure(error))
+                completion(.failure(error))
+                return
             }
             
             guard let user = result?.user else {
-                return completion(.failure(SimpleError("Unable to create user")))
+                completion(.failure(SimpleError("User not found")))
+                return
             }
             
-            let uid = user.uid
-            let appUser = appUser(
-                id: uid,
-                name: name,
-                email: email,
-                profilePictureURL: profilePictureURL ?? "https://via.placeholder.com/150"
-            )
+            self.fetchUser { fetchResult in
+                switch fetchResult {
+                case .success(let userObj):
+                    if let appUser = userObj {
+                        completion(.success(appUser))
+                    } else {
+                        // Create default appUser if not in Firestore
+                        let appUser = appUser(
+                            id: user.uid,
+                            name: user.displayName ?? "User",
+                            email: user.email ?? "user@example.com",
+                            profilePictureURL: user.photoURL?.absoluteString ?? "https://via.placeholder.com/150"
+                        )
+                        do {
+                            try self.db.collection("users").document(user.uid).setData(from: appUser) { error in
+                                if let error = error {
+                                    completion(.failure(error))
+                                    return
+                                }
+                                DispatchQueue.main.async { self.currentUser = appUser }
+                                completion(.success(appUser))
+                            }
+                        } catch {
+                            completion(.failure(error))
+                        }
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+    
+    // MARK: - FETCH CURRENT USER
+    func fetchUser(completion: @escaping (Result<appUser?, Error>) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            DispatchQueue.main.async { self.currentUser = nil }
+            completion(.success(nil))
+            return
+        }
+        
+        db.collection("users").document(uid).getDocument { snapshot, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let snapshot = snapshot else {
+                completion(.success(nil))
+                return
+            }
             
             do {
-                try self.db.collection("users").document(uid).setData(from: appUser) { error in
-                    if let error = error {
-                        return completion(.failure(error))
-                    }
-                    
-                    DispatchQueue.main.async {
-                        self.currentUser = appUser
-                    }
-                    
-                    completion(.success(appUser))
-                }
+                let user = try snapshot.data(as: appUser.self)
+                DispatchQueue.main.async { self.currentUser = user }
+                completion(.success(user))
             } catch {
                 completion(.failure(error))
             }
         }
     }
-
-
     
-    
-    //MARK: - LOGIN
-    func login(email: String, password: String, completion: @escaping (Result<appUser?, Error>) -> Void){
+    // MARK: - SAVE PROFILE (name + optional profile image)
+    func saveProfile(name: String, imageData: Data?, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            completion(.failure(SimpleError("User not logged in")))
+            return
+        }
         
-        Auth.auth().signIn(withEmail: email, password: password) { result, error in
-            
-            if let error = error {
-                print(error.localizedDescription)
-                completion(.failure(error))
-            }else if let user = result?.user {
-                
-                let uid = user.uid
-                
-                //fetch the user from firestore
-                self.fetchUser { res in
-                switch res {
-                case .success(let appUserobj):
-                    if let appUser = appUserobj {
-                        completion(.success(appUser))
-                    }else{
-                        //dummy data to prevent crash
-                        let name =  result?.user.displayName ?? "Dummy"
-                        let email =  result?.user.email ?? "Dummy@gmail.com"
-                        let profilepic = result?.user.photoURL?.absoluteString ?? "https://via.placeholder.com/150"
-                        let appUser = appUser(id: uid, name: name, email: email, profilePictureURL: profilepic)
-                        
-                        //update the empty record
-                        do{
-                            try self.db.collection("users").document(uid).setData(from: appUser){
-                                error in
-                                if let error = error {
-                                    print(error.localizedDescription)
-                                    completion(.failure(error)  )
-                                }
-                                DispatchQueue.main.async {
-                                    self.currentUser = appUser
-                                }
-                                completion(.success(appUser))
-                            }
-                        }catch {
-                            print(error.localizedDescription)
-                            completion(.failure(error))
-                        }
-                        
-                        
-                    }
-                case .failure(let failuer):
-                    completion(.failure(failuer))
-                    }
-                    
-                    
+        if let data = imageData {
+            // Upload new image
+            uploadProfileImage(uid: uid, data: data) { result in
+                switch result {
+                case .success(let urlString):
+                    self.updateUser(name: name, profilePictureURL: urlString, completion: completion)
+                case .failure(let error):
+                    completion(.failure(error))
                 }
-                
             }
-            
+        } else {
+            // No new image, just update name
+            updateUser(name: name, profilePictureURL: currentUser?.profilePictureURL, completion: completion)
         }
     }
     
-    
-    
-    //MARK: FETCH CURRENT USER
-    func fetchUser(completion: @escaping (Result<appUser?, Error>) -> Void) {
-        
-        //uid from FireBASEaUTH
-        guard let uid = Auth.auth().currentUser?.uid else {
-            DispatchQueue.main.async {
-                self.currentUser = nil
-            }
-            return completion(.success(nil))
-        }
-        
-        db.collection("users").document(uid).getDocument { snapshot, error in
+    // MARK: - UPLOAD PROFILE IMAGE
+    private func uploadProfileImage(uid: String, data: Data, completion: @escaping (Result<String, Error>) -> Void) {
+        let ref = Storage.storage().reference().child("profileImages/\(uid)/\(UUID().uuidString).jpg")
+        ref.putData(data, metadata: nil) { _, error in
             if let error = error {
-                return completion(.failure(error))
-            }
-            
-            guard let snapshot = snapshot else {
-                return completion(.success(nil))
-            }
-            
-            do{
-                let user = try snapshot.data(as: appUser.self)
-                
-                DispatchQueue.main.async {
-                    self.currentUser = user
-                }
-                completion(.success(user))
-            }catch{
-                print(error.localizedDescription)
                 completion(.failure(error))
+                return
+            }
+            ref.downloadURL { url, error in
+                if let url = url {
+                    completion(.success(url.absoluteString))
+                } else if let error = error {
+                    completion(.failure(error))
+                }
             }
         }
     }
     
-    
-    
-    //MARK: UPDATE PROFILE
-    func updateUser(name: String, profilePictureURL: String?, completion: @escaping (Result<Void, Error>) -> Void) {
-        
+    // MARK: - UPDATE USER IN FIRESTORE
+    private func updateUser(name: String, profilePictureURL: String?, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {
-            return completion(.success(()))
+            completion(.failure(SimpleError("User not logged in")))
+            return
         }
         
         var data: [String: Any] = ["name": name]
@@ -171,35 +207,24 @@ class AuthService: ObservableObject {
         
         db.collection("users").document(uid).updateData(data) { error in
             if let error = error {
-                return completion(.failure(error))
+                completion(.failure(error))
+                return
             }
             self.fetchUser { _ in
                 completion(.success(()))
             }
         }
     }
-
     
-    
-    
-    //MARK: SIGN OUT
+    // MARK: - SIGN OUT
     func signOut() -> Result<Void, Error> {
         do {
             try Auth.auth().signOut()
-            DispatchQueue.main.async {
-                self.currentUser = nil
-            }
+            DispatchQueue.main.async { self.currentUser = nil }
             return .success(())
         } catch {
-            print(error.localizedDescription)
             return .failure(error)
         }
     }
-    
-    
-    
-    //end of file
 }
-
-
 
