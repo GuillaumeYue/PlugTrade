@@ -68,6 +68,7 @@ struct ProfileEditView: View {
                 }
             }
             .padding(.horizontal, 40)
+            .clipShape(Circle())
             .onChange(of: selectedImage) { newValue in
                 Task {
                     if let data = try? await newValue?.loadTransferable(type: Data.self) {

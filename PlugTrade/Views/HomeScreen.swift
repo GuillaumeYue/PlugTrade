@@ -21,6 +21,9 @@ struct HomeScreen: View {
     @State private var selectedCategory: Category?
     @State private var showProfile = false
     @State private var showNotifications = false
+    @ObservedObject private var authManager = AuthService.shared
+    @ObservedObject private var cartManager = FirebaseCartManager()
+    
     
     var filteredItems: [Item] {
         if let category = selectedCategory, category != .all {
@@ -47,15 +50,54 @@ struct HomeScreen: View {
                                 .foregroundColor(.blue)
                         }
                         
+                        NavigationLink(destination: CartView()) {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: "cart.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 24, height: 24)
+                                    .foregroundStyle(Color.blue)
+                                
+                                if cartManager.cartItems.count > 0 {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 16, height: 16)
+                                        Text("\(cartManager.cartItems.count)")
+                                            .font(.caption2)
+                                            .foregroundColor(.white)
+                                    }
+                                    .offset(x: 8, y: -8)
+                                }
+                            }
+                        }
+
                         NavigationLink(destination: ProfileScreen()) {
-                            Circle()
-                                .fill(Color.blue.opacity(0.3))
-                                .frame(width: 32, height: 32)
-                                .overlay(
-                                    Text(AuthService.shared.currentUser?.name.prefix(2).uppercased() ?? "U")
-                                        .font(.caption)
-                                        .fontWeight(.semibold)
-                                )
+                            ZStack {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.3))
+                                    .frame(width: 32, height: 32)
+
+                                if let urlString = authManager.currentUser?.profilePictureURL,
+                                   let url = URL(string: urlString) {
+                                    AsyncImage(url: url) { image in
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 32, height: 32)
+                                            .clipShape(Circle())
+                                    } placeholder: {
+                                        ProgressView()
+                                            .frame(width: 32, height: 32)
+                                    }
+                                } else {
+                                    Image(systemName: "person.fill")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20, height: 20)
+                                        .foregroundColor(.blue)
+                                }
+                            }
                         }
 
                     }
@@ -141,17 +183,41 @@ struct CategoryCircle: View {
 struct ProductPost: View {
     let item: Item
     
+    @ObservedObject private var authManager = AuthService.shared
+    @State private var sellerImageURL: String?
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Circle()
-                    .fill(Color.blue.opacity(0.3))
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Text(item.sellerName.prefix(2).uppercased())
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                    )
+                ZStack {
+                    Circle()
+                        .fill(Color.blue.opacity(0.3))
+                        .frame(width: 32, height: 32)
+
+                    if let urlString = sellerImageURL,
+                       let url = URL(string: urlString) {
+                        AsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                        } placeholder: {
+                            ProgressView()
+                                .frame(width: 32, height: 32)
+                        }
+                    } else {
+                        Image(systemName: "person.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.blue)
+                    }
+                }.onAppear {
+                    authManager.fetchSeller(id: item.sellerID) { url in
+                                   sellerImageURL = url
+                               }
+                }
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.sellerName)
