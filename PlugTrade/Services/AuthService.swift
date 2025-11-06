@@ -17,6 +17,8 @@ class AuthService: ObservableObject {
     static let shared = AuthService()
     
     @Published var currentUser: appUser?
+    @Published var isLoading = false
+    @Published var profilePictureURL: String?
     
     private let db = Firestore.firestore()
     
@@ -226,5 +228,25 @@ class AuthService: ObservableObject {
             return .failure(error)
         }
     }
+    
+    
+    //MARK: Fetch seller of item
+    func fetchSeller(id: String, completion: @escaping (String?) -> Void) {
+        guard !id.isEmpty else {
+            completion(nil)
+            return
+        }
+
+        let db = Firestore.firestore()
+        db.collection("users").document(id).getDocument { snapshot, error in
+            if let data = snapshot?.data(),
+               let url = data["profilePictureURL"] as? String {
+                completion(url)
+            } else {
+                completion(nil)
+            }
+        }
+    }
+
 }
 
