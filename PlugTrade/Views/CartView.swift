@@ -61,7 +61,7 @@ struct CartView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(item.title)
                                         .font(.headline)
-                                    Text("$\(item.price, specifier: "%.0f")")
+                                    Text("$\(item.price ?? 0.0, specifier: "%.0f" )")
                                         .font(.subheadline)
                                         .foregroundColor(.blue)
                                 }

@@ -22,6 +22,8 @@ struct ListProductScreen: View {
     @State private var selectedCategory: Category = .mobile
     @State private var selectedImage: PhotosPickerItem?
     @State private var imageData: Data?
+    @State private var quantity = ""
+    @State private var selectedType: ItemTypeEnum = .forSale
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var isPosting = false
@@ -55,11 +57,27 @@ struct ListProductScreen: View {
                 }
                 
                 Section(header: Text("Product Details")) {
+                    
+                    Picker("Transaction Type", selection:
+                            $selectedType){
+                        ForEach(ItemTypeEnum.allCases, id: \.self){
+                            itemType in
+                            Text(itemType.rawValue.capitalized).tag(itemType)
+                        }
+                    }
                     TextField("Title", text: $title)
-                    TextField("Price", text: $price)
-                        .keyboardType(.decimalPad)
+                    
+                    if selectedType == .forSale {
+                        TextField("Price", text: $price)
+                            .keyboardType(.decimalPad)
+                    }
+                    
+                    TextField("Quantity", text: $quantity)
+                        .keyboardType(.numberPad)
+                    
                     TextField("Location", text: $location)
                     
+                   
                     Picker("Category", selection: $selectedCategory) {
                         ForEach(Category.allCases.filter { $0 != .all }, id: \.self) { category in
                             Text(category.rawValue.capitalized).tag(category)
@@ -87,7 +105,12 @@ struct ListProductScreen: View {
                             }
                         }
                     }
-                    .disabled(isPosting || title.isEmpty || price.isEmpty || location.isEmpty)
+                    .disabled(
+                        selectedType == .forSale
+                           ? (isPosting || title.isEmpty || price.isEmpty || location.isEmpty || quantity.isEmpty)
+                       
+                        : (isPosting || title.isEmpty ||  location.isEmpty || quantity.isEmpty))
+                       
                 }
             }
             .navigationTitle("Post New Item")
@@ -111,20 +134,34 @@ struct ListProductScreen: View {
     }
     
     private func postItem() {
-        guard let priceValue = Double(price) else {
-            alertMessage = "Please enter a valid price"
+        
+        if selectedType == .forSale, price.isEmpty {
+            alertMessage = "Please enter a valid Price"
+            showingAlert = true
+            return
+            
+        }
+        
+      
+       
+        guard let quantityValue = Int(quantity) else {
+            alertMessage = "Please enter a valid quantity"
             showingAlert = true
             return
         }
         
         isPosting = true
         
+        let priceValue = Double(price) ?? 0.0
+        
         productManager.addProduct(
             title: title,
             price: priceValue,
             location: location,
             category: selectedCategory,
-            image: imageData
+            image: imageData,
+            quantity: quantityValue,
+            itemType: selectedType
         ) { result in
             isPosting = false
             switch result {
@@ -145,6 +182,8 @@ struct ListProductScreen: View {
         selectedCategory = .mobile
         selectedImage = nil
         imageData = nil
+        quantity = ""
+        selectedType = .forSale
     }
 }
 

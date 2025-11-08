@@ -184,7 +184,7 @@ struct ItemCard: View {
             Text(item.title)
                 .font(.subheadline)
                 .lineLimit(2)
-            Text("$\(String(format: "%.2f", item.price))")
+            Text("$\(String(format: "%.2f", item.price ?? 0))")
                 .font(.headline)
             Text(item.location)
                 .font(.caption)
@@ -264,7 +264,7 @@ struct ItemDetailView: View {
                     Text(item.title)
                         .font(.title3).bold()
                     HStack {
-                        Text("$\(String(format: "%.2f", item.price))").font(.title3)
+                        Text("$\(String(format: "%.2f", item.price ?? 0))").font(.title3)
                         Spacer()
                         Text(item.category.rawValue.capitalized)
                             .font(.caption)
