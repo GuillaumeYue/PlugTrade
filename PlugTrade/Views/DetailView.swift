@@ -48,7 +48,7 @@ struct DetailView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("$\(item.price, specifier: "%.0f")")
+                    Text("$\(item.price ?? 0.0, specifier: "%.0f")")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)

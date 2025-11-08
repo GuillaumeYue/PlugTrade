@@ -21,7 +21,7 @@ struct UserSalesProducts: View {
                         .font(.headline)
                         .foregroundColor(.black)
                     
-                    Text("$\(item.price, specifier: "%.2f")")
+                    Text("$\(item.price ?? 0, specifier: "%.2f")")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -86,7 +86,7 @@ struct UserSalesProducts: View {
                 }
                 
                 HStack {
-                    Text("$\(item.price, specifier: "%.0f")")
+                    Text("$\(item.price ?? 0, specifier: "%.0f")")
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)

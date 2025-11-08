@@ -66,17 +66,18 @@ struct SearchScreen: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 16) {
+                            GridItem(.fixed(190), spacing: 16),
+                            GridItem(.fixed(190), spacing: 16)
+                        ]) {
                             ForEach(filteredItems) { item in
                                 NavigationLink(destination: DetailView(item: item)) {
                                     ItemRowView(item: item)
+                                        .aspectRatio(0.8, contentMode: .fit)
                                 }
-                                .buttonStyle(PlainButtonStyle())
+                                .buttonStyle(.plain)
                             }
                         }
-                        .padding()
+                       
                     }
                 }
             }

@@ -23,6 +23,7 @@ struct MyProducts: View {
                     .environmentObject(ProductManager())
             }else{
                 ProductsForTrade()
+                    .environmentObject(ProductManager())
             }
             
         }

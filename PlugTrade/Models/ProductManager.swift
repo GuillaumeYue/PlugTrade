@@ -82,7 +82,7 @@ class ProductManager: ObservableObject {
 
     
     
-    func addProduct(title: String, price: Double, location: String, category: Category, image: Data?, completion: @escaping (Result<Void, Error>) -> Void) {
+    func addProduct(title: String, price: Double?, location: String, category: Category, image: Data?, quantity: Int,itemType: ItemTypeEnum, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let userID = AuthService.shared.currentUser?.id,
               let userName = AuthService.shared.currentUser?.name else {
             completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
@@ -93,13 +93,24 @@ class ProductManager: ObservableObject {
             uploadImage(imageData) { result in
                 switch result {
                 case .success(let imageURL):
-                    self.saveProduct(title: title, price: price, location: location, category: category, imageURL: imageURL, sellerID: userID, sellerName: userName, completion: completion)
+                    if itemType == .forSale {
+                        self.saveProduct(title: title, price: price, location: location, category: category, imageURL: imageURL, sellerID: userID, sellerName: userName, quantity: quantity, itemType: itemType, completion: completion)
+                    }
+                    else if itemType == .forTrade{
+                        self.saveProduct(title: title, price: nil, location: location, category: category, imageURL: imageURL, sellerID: userID, sellerName: userName, quantity: quantity, itemType: itemType, completion: completion)
+                    }
                 case .failure(let error):
                     completion(.failure(error))
                 }
             }
         } else {
-            saveProduct(title: title, price: price, location: location, category: category, imageURL: "https://via.placeholder.com/300", sellerID: userID, sellerName: userName, completion: completion)
+            if itemType == .forSale {
+                saveProduct(title: title, price: price, location: location, category: category, imageURL: "https://via.placeholder.com/300", sellerID: userID, sellerName: userName, quantity: quantity, itemType: itemType, completion: completion)
+            }
+            else if itemType == .forTrade{
+                saveProduct(title: title, price: nil, location: location, category: category, imageURL: "https://via.placeholder.com/300", sellerID: userID, sellerName: userName, quantity: quantity, itemType: itemType, completion: completion)
+            }
+           
         }
     }
     
@@ -128,7 +139,7 @@ class ProductManager: ObservableObject {
         }
     }
     
-    private func saveProduct(title: String, price: Double, location: String, category: Category, imageURL: String, sellerID: String, sellerName: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    private func saveProduct(title: String, price: Double?, location: String, category: Category, imageURL: String, sellerID: String, sellerName: String, quantity: Int,itemType: ItemTypeEnum, completion: @escaping (Result<Void, Error>) -> Void) {
         let product = Item(
             id: nil,
             title: title,
@@ -138,7 +149,9 @@ class ProductManager: ObservableObject {
             imageURL: imageURL,
             sellerID: sellerID,
             sellerName: sellerName,
-            timestamp: Date()
+            timestamp: Date(),
+            quantity: quantity,
+            itemType: itemType
         )
         
         do {
