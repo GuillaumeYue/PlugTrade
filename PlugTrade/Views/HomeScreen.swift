@@ -23,6 +23,7 @@ struct HomeScreen: View {
     @State private var showNotifications = false
     @ObservedObject private var authManager = AuthService.shared
     @ObservedObject private var cartManager = FirebaseCartManager()
+  
     
     
     var filteredItems: [Item] {
@@ -185,6 +186,7 @@ struct ProductPost: View {
     
     @ObservedObject private var authManager = AuthService.shared
     @State private var sellerImageURL: String?
+    @State private var rotate = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -272,11 +274,40 @@ struct ProductPost: View {
                 )
             }
             
+            
+            //MARK: BADGE
             HStack {
-                Text("$\(item.price, specifier: "%.0f")")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.blue)
+                if item.itemType == .forSale {
+                    Text("$\(item.price ?? 0.0, specifier: "%.0f")")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                }else{
+                    
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.2.circlepath")
+                            .font(.title3)
+                            .foregroundColor(.white)
+                            .rotationEffect(.degrees(rotate ? 360 : 0))
+                            .animation(.linear(duration: 2).repeatForever(autoreverses: false), value: rotate)
+                            .onAppear { rotate = true }
+
+                        Text("For Trade")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.green.gradient)
+                            .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 2)
+                    )
+
+                  
+                }
+               
                 
                 Spacer()
                 

@@ -62,7 +62,8 @@ class FirebaseCartManager: ObservableObject {
     }
     
     var totalPrice: Double {
-        cartItems.reduce(0) { $0 + $1.price }
+        cartItems.reduce(0) { $0 + ($1.price ?? 0.0 )}
+           
     }
 }
 

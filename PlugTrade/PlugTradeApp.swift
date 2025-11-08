@@ -20,14 +20,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct PlugTradeApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject var cartManager = CartManager()
-    @StateObject var productManager = ProductManager()
+    @StateObject private var authService     = AuthService.shared
+        @StateObject private var productManager  = ProductManager.shared
+        @StateObject private var firebaseCart    = FirebaseCartManager()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(cartManager)
-                               .environmentObject(productManager)
+                .environmentObject(authService)
+                                .environmentObject(productManager)
+                                .environmentObject(firebaseCart)
                
         }
     }
