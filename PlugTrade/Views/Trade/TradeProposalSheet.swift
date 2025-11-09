@@ -32,7 +32,7 @@ struct TradeProposalSheet: View {
                 contentList
                 submitArea
             }
-            .navigationTitle("发起交换")
+            .navigationTitle("Send Proposal")
             .navigationBarTitleDisplayMode(.inline)
         }
         .toast(isPresented: $toast.show, message: toast.message)
@@ -53,7 +53,7 @@ struct TradeProposalSheet: View {
 
             VStack(alignment: .leading) {
                 Text(targetItem.title).font(.subheadline).lineLimit(2)
-                Text("来自：\(targetItem.sellerName)").font(.caption)
+                Text("From:\(targetItem.sellerName)").font(.caption)
                     .foregroundColor(.secondary)
             }
             Spacer()
@@ -65,15 +65,15 @@ struct TradeProposalSheet: View {
             if productManager.userProducts.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "shippingbox").imageScale(.large)
-                    Text("你还没有发布物品").font(.subheadline)
-                    Text("先去上架一个，再回来发起交换吧。").font(.caption).foregroundColor(
+                    Text("You haven't post any items yet.").font(.subheadline)
+                    Text("Post an item to start a trade!").font(.caption).foregroundColor(
                         .secondary
                     )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
-                    Section(header: Text("选择用于交换的物品")) {
+                    Section(header: Text("Choose an item to trade")) {
                         ForEach(productManager.userProducts) { item in
                             OfferSelectableRow(
                                 item: item,
@@ -82,7 +82,7 @@ struct TradeProposalSheet: View {
                             )
                         }
                     }
-                    Section(header: Text("备注（可选）")) {
+                    Section(header: Text("Comment(optional)")) {
                         TextEditor(text: $note).frame(minHeight: 80)
                     }
                 }
@@ -95,7 +95,7 @@ struct TradeProposalSheet: View {
             Button {
                 submitProposal()
             } label: {
-                if isSubmitting { ProgressView() } else { Text("发送提议") }
+                if isSubmitting { ProgressView() } else { Text("Send Proposal") }
             }
             .buttonStyle(.borderedProminent)
             .disabled(
@@ -103,7 +103,7 @@ struct TradeProposalSheet: View {
                     || authService.currentUser == nil
             )
 
-            Button("取消") { isPresented = false }
+            Button("Cancel") { isPresented = false }
                 .padding(.top, 2)
         }
         .padding()
@@ -139,9 +139,9 @@ struct TradeProposalSheet: View {
         ) { error in
             isSubmitting = false
             if let error = error {
-                toast = ("发送失败：\(error.localizedDescription)", true)
+                toast = ("Proposal failed:\(error.localizedDescription)", true)
             } else {
-                toast = ("已发送交换提议", true)
+                toast = ("Proposal sent successfully!", true)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
                     isPresented = false
                 }

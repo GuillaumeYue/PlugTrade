@@ -48,7 +48,7 @@ private struct DemoToast: View {
     @State private var show = true
     var body: some View {
         VStack { Button("Toggle") { withAnimation { show.toggle() } } }
-            .toast(isPresented: $show, message: "已发送交换提议")
+            .toast(isPresented: $show, message: "Proposal Sent!")
             .padding()
             .frame(width: 300, height: 200)
     }

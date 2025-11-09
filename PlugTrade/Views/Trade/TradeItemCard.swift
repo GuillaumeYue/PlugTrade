@@ -61,7 +61,7 @@ struct TradeItemCard: View {
                 }
             }
             Button(action: onPropose) {
-                Text("发起交换")
+                Text("Send Request")
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
             }
