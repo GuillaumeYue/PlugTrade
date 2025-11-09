@@ -51,68 +51,80 @@ class ProductManager: ObservableObject {
     }
     
     func fetchUserProducts() {
-            guard let userID = Auth.auth().currentUser?.uid else {
-                print("No user logged in.")
-                return
-            }
-
-            db.collection("products")
-                .whereField("sellerID", isEqualTo: userID)
-//                .order(by: "timestamp", descending: true)
-                .getDocuments { [weak self] snapshot, error in
-                    if let error = error {
-                        print("Error fetching user products: \(error)")
-                        return
-                    }
-
-                    guard let documents = snapshot?.documents else {
-                        print("No products found.")
-                        return
-                    }
-
-                    do {
-                        self?.userProducts = try documents.map { doc in
-                            try doc.data(as: Item.self)
-                        }
-                    } catch {
-                        print("Error decoding items: \(error)")
-                    }
-                }
-        }
-
-    
-    
-    func addProduct(title: String, price: Double?, location: String, category: Category, image: Data?, quantity: Int,itemType: ItemTypeEnum, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let userID = AuthService.shared.currentUser?.id,
-              let userName = AuthService.shared.currentUser?.name else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("No Firebase user logged in")
+            DispatchQueue.main.async { self.userProducts = [] }
             return
         }
-        
+
+        db.collection("products")
+            .whereField("sellerID", isEqualTo: uid)
+            .order(by: "timestamp", descending: true)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self else { return }
+                if let error = error {
+                    print("User products listener error: \(error.localizedDescription)")
+                    return
+                }
+                guard let documents = snapshot?.documents else {
+                    DispatchQueue.main.async { self.userProducts = [] }
+                    return
+                }
+                let items: [Item] = documents.compactMap { try? $0.data(as: Item.self) }
+                DispatchQueue.main.async { self.userProducts = items }
+            }
+    }
+
+
+    
+    
+    func addProduct(
+        title: String,
+        price: Double?,
+        location: String,
+        category: Category,
+        image: Data?,
+        quantity: Int,
+        itemType: ItemTypeEnum,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            completion(.failure(NSError(domain: "", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        let name = AuthService.shared.currentUser?.name ?? "User"
+
+        let save: (String) -> Void = { [weak self] imageURL in
+            guard let self = self else { return }
+            self.saveProduct(
+                title: title,
+                // 以物易物不存价格；出售正常存价格
+                price: (itemType == .forTrade) ? nil : price,
+                location: location,
+                category: category,
+                imageURL: imageURL,
+                sellerID: uid,          // ✅ 与查询使用同一 UID
+                sellerName: name,
+                quantity: quantity,
+                itemType: itemType,
+                completion: completion
+            )
+        }
+
         if let imageData = image {
             uploadImage(imageData) { result in
                 switch result {
-                case .success(let imageURL):
-                    if itemType == .forSale {
-                        self.saveProduct(title: title, price: price, location: location, category: category, imageURL: imageURL, sellerID: userID, sellerName: userName, quantity: quantity, itemType: itemType, completion: completion)
-                    }
-                    else if itemType == .forTrade{
-                        self.saveProduct(title: title, price: nil, location: location, category: category, imageURL: imageURL, sellerID: userID, sellerName: userName, quantity: quantity, itemType: itemType, completion: completion)
-                    }
-                case .failure(let error):
-                    completion(.failure(error))
+                case .success(let url): save(url)
+                case .failure(let err): completion(.failure(err))
                 }
             }
         } else {
-            if itemType == .forSale {
-                saveProduct(title: title, price: price, location: location, category: category, imageURL: "https://via.placeholder.com/300", sellerID: userID, sellerName: userName, quantity: quantity, itemType: itemType, completion: completion)
-            }
-            else if itemType == .forTrade{
-                saveProduct(title: title, price: nil, location: location, category: category, imageURL: "https://via.placeholder.com/300", sellerID: userID, sellerName: userName, quantity: quantity, itemType: itemType, completion: completion)
-            }
-           
+            save("https://via.placeholder.com/300")
         }
     }
+
+
     
     private func uploadImage(_ imageData: Data, completion: @escaping (Result<String, Error>) -> Void) {
         let imageName = UUID().uuidString
