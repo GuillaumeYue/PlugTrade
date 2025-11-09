@@ -127,12 +127,13 @@ struct TradeProposalSheet: View {
         let payload: [String: Any] = [
             "productID": productID,
             "sellerID": targetItem.sellerID,
-            "buyerID": buyerID,
+            "senderId": buyerID,  
             "offeredItemIDs": Array(selectedIDs),
             "note": note,
             "status": "pending",
             "timestamp": Timestamp(date: Date()),
         ]
+
 
         Firestore.firestore().collection("trade_proposals").addDocument(
             data: payload
