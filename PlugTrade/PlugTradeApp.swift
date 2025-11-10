@@ -30,6 +30,10 @@ struct PlugTradeApp: App {
                 .environmentObject(authService)
                                 .environmentObject(productManager)
                                 .environmentObject(firebaseCart)
+                                .onAppear {
+                                    productManager.fetchUserProducts()
+                                }
+
                
         }
     }

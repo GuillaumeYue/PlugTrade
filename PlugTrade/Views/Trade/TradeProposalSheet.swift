@@ -60,15 +60,24 @@ struct TradeProposalSheet: View {
         }
         .padding()
     }
+    
     private var contentList: some View {
         Group {
-            if productManager.userProducts.isEmpty {
+            if (productManager.userProductsLoaded == false && productManager.userProducts.isEmpty) {
+                VStack(spacing: 10) {
+                    ProgressView()
+                    Text("Loading my Post")
+                        .font(.caption).foregroundColor(.secondary)
+                    Button("Reload") { productManager.fetchUserProducts() }
+                        .buttonStyle(.bordered)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if productManager.userProductsLoaded == true && productManager.userProducts.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "shippingbox").imageScale(.large)
-                    Text("You haven't post any items yet.").font(.subheadline)
-                    Text("Post an item to start a trade!").font(.caption).foregroundColor(
-                        .secondary
-                    )
+                    Text("You haven't listed any items yet.").font(.subheadline)
+                    Text("Post an item now to start trading!")
+                        .font(.caption).foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -90,6 +99,7 @@ struct TradeProposalSheet: View {
             }
         }
     }
+
     private var submitArea: some View {
         VStack(spacing: 10) {
             Button {

@@ -7,12 +7,15 @@ struct TradeScreen: View {
     @State private var searchText: String = ""
     @State private var selectedCategory: Category = .all
 
-    @State private var showingProposalSheet = false
-    @State private var proposingForItem: Item? = nil
+    private struct ProposalWrapper: Identifiable {
+        let id = UUID()
+        let item: Item
+    }
+    @State private var sheetWrapper: ProposalWrapper?
 
     init() {}
     var body: some View {
-        NavigationView {  // keep NavigationView for iOS 15
+        NavigationView {
             VStack(spacing: 0) {
                 signInBanner
                 searchBar
@@ -22,18 +25,21 @@ struct TradeScreen: View {
             .navigationTitle("Trade")
             .navigationBarTitleDisplayMode(.large)
         }
-        .sheet(isPresented: $showingProposalSheet) {
-            if let target = proposingForItem {
-                TradeProposalSheet(
-                    targetItem: target,
-                    isPresented: $showingProposalSheet
-                )
-                .environmentObject(productManager)
-                .environmentObject(authService)
-            }
+        .sheet(item: $sheetWrapper) { wrapper in
+            TradeProposalSheet(
+                targetItem: wrapper.item,
+                isPresented: .constant(true)
+            )
+            .environmentObject(productManager)
+            .environmentObject(authService)
+            .background(Color(UIColor.systemBackground))
+            .ifAvailableiOS16 { $0.presentationDetents([.medium, .large]) }
         }
-        .onAppear { productManager.fetchUserProducts() }
+        .onAppear {
+            productManager.fetchUserProducts()
+        }
     }
+
     // MARK: Sections
     private var signInBanner: some View {
         Group {
@@ -54,6 +60,7 @@ struct TradeScreen: View {
             }
         }
     }
+
     private var searchBar: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
@@ -62,9 +69,7 @@ struct TradeScreen: View {
                 .disableAutocorrection(true)
                 .submitLabel(.search)
             if !searchText.isEmpty {
-                Button {
-                    searchText = ""
-                } label: {
+                Button { searchText = "" } label: {
                     Image(systemName: "xmark.circle.fill").imageScale(.medium)
                 }
                 .accessibilityLabel("Clear search")
@@ -76,12 +81,11 @@ struct TradeScreen: View {
         .padding(.horizontal)
         .padding(.top, authService.currentUser == nil ? 8 : 16)
     }
+
     private var categoryChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                // ensure .all appears first
-                let cats: [Category] =
-                    [.all] + Category.allCases.filter { $0 != .all }
+                let cats: [Category] = [.all] + Category.allCases.filter { $0 != .all }
                 ForEach(cats, id: \.self) { cat in
                     CategoryChip(
                         title: cat.rawValue.capitalized,
@@ -94,6 +98,7 @@ struct TradeScreen: View {
             .padding(.vertical, 8)
         }
     }
+
     private var contentList: some View {
         let items = filteredTradeItems()
         return Group {
@@ -107,8 +112,8 @@ struct TradeScreen: View {
                     LazyVStack(spacing: 14) {
                         ForEach(items) { item in
                             TradeItemCard(item: item) {
-                                proposingForItem = item
-                                showingProposalSheet = true
+                                productManager.fetchUserProducts()
+                                sheetWrapper = ProposalWrapper(item: item)
                             }
                         }
                         .padding(.horizontal)
@@ -119,14 +124,12 @@ struct TradeScreen: View {
         }
     }
 
+
     // MARK: Helpers
     private func filteredTradeItems() -> [Item] {
         productManager.items
             .filter { $0.itemType == .forTrade }
-            .filter {
-                selectedCategory == .all
-                    ? true : $0.category == selectedCategory
-            }
+            .filter { selectedCategory == .all ? true : $0.category == selectedCategory }
             .filter {
                 guard !searchText.isEmpty else { return true }
                 return $0.title.localizedCaseInsensitiveContains(searchText)
@@ -135,14 +138,20 @@ struct TradeScreen: View {
     }
 }
 
+// iOS16 可选 detents helper
+private extension View {
+    @ViewBuilder
+    func ifAvailableiOS16<Content: View>(_ transform: (Self) -> Content) -> some View {
+        if #available(iOS 16.0, *) { transform(self) } else { self }
+    }
+}
+
 private struct EmptyStateView: View {
     let title: String
     let subtitle: String
     var body: some View {
         VStack(spacing: 12) {
-            Image(systemName: "shippingbox").imageScale(.large).font(
-                .system(size: 28)
-            )
+            Image(systemName: "shippingbox").imageScale(.large).font(.system(size: 28))
             Text(title).font(.headline)
             Text(subtitle).foregroundColor(.secondary).font(.subheadline)
         }
@@ -152,15 +161,14 @@ private struct EmptyStateView: View {
 }
 
 #if DEBUG
-    struct TradeScreen_Previews: PreviewProvider {
-        static var previews: some View {
-            // Lightweight mocks for preview to avoid Firebase dependency
-            let pm = ProductManager()
-            pm.items = SampleData.items
-            let auth = AuthService()
-            return TradeScreen()
-                .environmentObject(pm)
-                .environmentObject(auth)
-        }
+struct TradeScreen_Previews: PreviewProvider {
+    static var previews: some View {
+        let pm = ProductManager()
+        pm.items = SampleData.items
+        let auth = AuthService()
+        return TradeScreen()
+            .environmentObject(pm)
+            .environmentObject(auth)
     }
+}
 #endif
