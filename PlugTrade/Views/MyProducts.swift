@@ -6,30 +6,34 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
 struct MyProducts: View {
     @State private var showsaleproducts: Bool = true
-    
+
     var body: some View {
         VStack {
             Picker("", selection: $showsaleproducts) {
                 Text("Products for sale").tag(true)
                 Text("Products for trade").tag(false)
-            }.pickerStyle(.segmented)
-                .padding()
-            
-            if showsaleproducts{
+            }
+            .pickerStyle(.segmented)
+            .padding()
+
+            if showsaleproducts {
                 ProductsForSale()
                     .environmentObject(ProductManager())
-            }else{
+            } else {
                 ProductsForTrade()
                     .environmentObject(ProductManager())
             }
-            
         }
     }
 }
 
 #Preview {
     MyProducts()
+        .environmentObject(ProductManager())
+        .environmentObject(AuthService())
 }
+

@@ -96,10 +96,6 @@ class ProductManager: ObservableObject {
         }
     }
 
-
-
-    
-    
     func addProduct(
         title: String,
         price: Double?,
@@ -126,7 +122,7 @@ class ProductManager: ObservableObject {
                 location: location,
                 category: category,
                 imageURL: imageURL,
-                sellerID: uid,          // ✅ 与查询使用同一 UID
+                sellerID: uid,          // 与查询使用同一 UID
                 sellerName: name,
                 quantity: quantity,
                 itemType: itemType,
