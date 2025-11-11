@@ -5,11 +5,13 @@
 //  Created by Shaquille O Neil on 2025-10-24.
 //
 
+import FirebaseAuth
 import SwiftUI
 
 struct ContentView: View {
     @StateObject var authManager = AuthService.shared
     @State private var isLoaded = false
+    @EnvironmentObject var productManager: ProductManager
     var body: some View {
         NavigationView {
             Group {
@@ -18,23 +20,35 @@ struct ContentView: View {
                         .onAppear {
                             authManager.fetchUser { _ in
                                 isLoaded = true
+                                //preheat listening
+                                if Auth.auth().currentUser != nil {
+                                    productManager.fetchUserProducts()
+                                }
                             }
                         }
-                } else  if authManager.currentUser == nil{
+                } else if authManager.currentUser == nil {
                     AuthGate()
-                }else{
+                } else {
                     MainTabView()
+                        // another at main page load listening
+                        .onAppear {
+                            productManager.fetchUserProducts()
+                        }
                 }
             }
         }
-       
-        
-       
-
+        // Log in/ out change listening
+        .onChange(of: authManager.currentUser?.id) { _ in
+            if Auth.auth().currentUser != nil {
+                productManager.fetchUserProducts()
+            } else {
+                productManager.stopUserProductsListener()
+            }
+        }
     }
 }
 
 #Preview {
     ContentView()
-       
+
 }

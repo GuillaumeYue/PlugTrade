@@ -17,9 +17,12 @@ class ProductManager: ObservableObject {
     @Published var items: [Item] = []
     @Published var isLoading = false
     @Published var userProducts: [Item] = []
+    @Published var userProductsLoaded = false
+    @Published var userProductsLoading = false
     
     private let db = Firestore.firestore()
     private let storage = Storage.storage()
+    private var userProductsListener: ListenerRegistration?
     
     init() {
         fetchProducts()
@@ -52,28 +55,47 @@ class ProductManager: ObservableObject {
     
     func fetchUserProducts() {
         guard let uid = Auth.auth().currentUser?.uid else {
-            print("No Firebase user logged in")
-            DispatchQueue.main.async { self.userProducts = [] }
+            stopUserProductsListener()
             return
         }
+        if userProductsListener != nil { return }  
 
-        db.collection("products")
+        userProductsLoading = true
+        userProductsLoaded  = false
+
+        userProductsListener = db.collection("products")
             .whereField("sellerID", isEqualTo: uid)
             .order(by: "timestamp", descending: true)
-            .addSnapshotListener { [weak self] snapshot, error in
+            .addSnapshotListener { [weak self] snap, err in
                 guard let self = self else { return }
-                if let error = error {
-                    print("User products listener error: \(error.localizedDescription)")
+                if let err = err {
+                    print("User products listener error:", err.localizedDescription)
+                    DispatchQueue.main.async {
+                        self.userProducts = []
+                        self.userProductsLoading = false
+                        self.userProductsLoaded  = true
+                    }
                     return
                 }
-                guard let documents = snapshot?.documents else {
-                    DispatchQueue.main.async { self.userProducts = [] }
-                    return
+                let items = snap?.documents.compactMap { try? $0.data(as: Item.self) } ?? []
+                DispatchQueue.main.async {
+                    self.userProducts = items
+                    self.userProductsLoading = false
+                    self.userProductsLoaded  = true
                 }
-                let items: [Item] = documents.compactMap { try? $0.data(as: Item.self) }
-                DispatchQueue.main.async { self.userProducts = items }
             }
     }
+
+    func stopUserProductsListener() {
+        userProductsListener?.remove()
+        userProductsListener = nil
+        DispatchQueue.main.async {
+            self.userProducts = []
+            self.userProductsLoading = false
+            self.userProductsLoaded = false
+        }
+    }
+
 
 
     
