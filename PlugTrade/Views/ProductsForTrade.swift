@@ -100,32 +100,101 @@ private struct ProductCard: View {
 // MARK: - Expanded Content
 private struct ExpandedContent: View {
     let item: Item
+    @State private var showEditSheet = false
+    @State private var showDeleteConfirm = false
+    @State private var isDeleting = false
+    @State private var deleteError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            // 点图进详情
             NavigationLink(destination: DetailView(item: item)) {
                 ProductImage(urlString: item.imageURL)
             }
 
             HStack {
-                Text("$\(String(format: "%.0f", item.price ?? 0))")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.blue)
+                // 左侧价格/标签（Trade 显示“For Trade”）
+                if item.itemType == .forSale {
+                    Text("$\(String(format: "%.0f", item.price ?? 0))")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                } else {
+                    Text("For Trade")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.orange)
+                }
 
                 Spacer()
 
-                HStack(spacing: 16) {
-                    Image(systemName: "heart")
-                    Image(systemName: "message")
-                    Image(systemName: "cart")
+                // 右侧操作：编辑 / 删除
+                HStack(spacing: 18) {
+                    // 编辑：弹出内置编辑表单
+                    Button {
+                        showEditSheet = true
+                    } label: {
+                        Image(systemName: "pencil")
+                            .imageScale(.large)
+                            .accessibilityLabel("Edit")
+                    }
+
+                    // 删除：确认后删除 Firestore 文档
+                    Button {
+                        showDeleteConfirm = true
+                    } label: {
+                        if isDeleting {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "trash")
+                                .imageScale(.large)
+                        }
+                    }
+                    .tint(.red)
+                    .accessibilityLabel("Delete")
+                    .confirmationDialog(
+                        "Delete this item?",
+                        isPresented: $showDeleteConfirm,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Delete", role: .destructive) { deleteItem() }
+                        Button("Cancel", role: .cancel) { }
+                    } message: {
+                        Text("This action cannot be undone.")
+                    }
                 }
                 .font(.title3)
             }
             .padding(.horizontal)
+
+            // 删除错误信息
+            if let deleteError {
+                Text(deleteError)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+            }
+        }
+        // 内置编辑表单
+        .sheet(isPresented: $showEditSheet) {
+            EditTradeSheet(item: item)
+                .presentationDetents([.medium, .large])
+        }
+    }
+
+    private func deleteItem() {
+        guard let id = item.id else { return }
+        isDeleting = true
+        deleteError = nil
+        Firestore.firestore().collection("products").document(id).delete { err in
+            isDeleting = false
+            if let err = err {
+                deleteError = "Delete failed: \(err.localizedDescription)"
+            }
         }
     }
 }
+
 
 // MARK: - Product Image
 private struct ProductImage: View {
@@ -157,6 +226,91 @@ private struct ProductImage: View {
         }
     }
 }
+
+// MARK: - Inline Edit Sheet for Trade Items
+private struct EditTradeSheet: View {
+    let item: Item
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var title: String
+    @State private var location: String
+    @State private var category: Category
+    @State private var quantity: Int
+    @State private var isSaving = false
+    @State private var errorText: String?
+
+    init(item: Item) {
+        self.item = item
+        _title = State(initialValue: item.title)
+        _location = State(initialValue: item.location)
+        _category = State(initialValue: item.category)
+        _quantity = State(initialValue: item.quantity)
+    }
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section("Basic") {
+                    TextField("Title", text: $title)
+                    TextField("Location", text: $location)
+
+                    Picker("Category", selection: $category) {
+                        ForEach(Category.allCases, id: \.self) { c in
+                            Text(c.rawValue.capitalized).tag(c)
+                        }
+                    }
+
+                    Stepper("Quantity: \(quantity)", value: $quantity, in: 1...999)
+                }
+
+                if let errorText {
+                    Text(errorText)
+                        .font(.footnote)
+                        .foregroundColor(.red)
+                }
+            }
+            .navigationTitle("Edit Item")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(isSaving ? "Saving…" : "Save") {
+                        save()
+                    }.disabled(isSaving)
+                }
+            }
+        }
+    }
+
+    private func save() {
+        guard let id = item.id else { return }
+        isSaving = true
+        errorText = nil
+
+        // For Trade 不涉及 price；只更新常用字段
+        let data: [String: Any] = [
+            "title": title,
+            "location": location,
+            "category": category.rawValue,
+            "quantity": quantity,
+            "timestamp": Timestamp(date: Date()) // 可选：更新排序时间
+        ]
+
+        Firestore.firestore()
+            .collection("products")
+            .document(id)
+            .updateData(data) { err in
+                isSaving = false
+                if let err = err {
+                    errorText = err.localizedDescription
+                } else {
+                    dismiss()
+                }
+            }
+    }
+}
+
 
 #Preview {
     ProductsForTrade()
