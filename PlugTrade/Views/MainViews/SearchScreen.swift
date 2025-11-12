@@ -2,14 +2,14 @@
 //  SearchScreen.swift
 //  PlugTrade
 //
-//  Created by Shaquille O Neil on 2025-10-26.
+//  MARK: Created by Shaquille O Neil on 2025-10-26.
 //
 
 //
 //  ProductView.swift
 //  PlugTrade
 //
-//  Created by mac on 2025-10-28.
+//  MARK: Created by Evelyne mac on 2025-10-28.
 //
 
 
@@ -69,13 +69,21 @@ struct SearchScreen: View {
                             GridItem(.fixed(190), spacing: 16),
                             GridItem(.fixed(190), spacing: 16)
                         ]) {
+                            // MARK: Adjusted by S.Neil
                             ForEach(filteredItems) { item in
-                                NavigationLink(destination: DetailView(item: item)) {
+                                NavigationLink(destination:{
+                                    if item.itemType == .forTrade {
+                                        TradeItemCard(item: item, onPropose: {})
+                                    } else {
+                                        DetailView(item: item)
+                                    }
+                                }) {
                                     ItemRowView(item: item)
                                         .aspectRatio(0.8, contentMode: .fit)
                                 }
                                 .buttonStyle(.plain)
                             }
+                            // MARK: end of adjustment
                         }
                        
                     }

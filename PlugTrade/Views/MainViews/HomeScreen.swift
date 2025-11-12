@@ -2,14 +2,14 @@
 //  HomeScreen.swift
 //  PlugTrade
 //
-//  Created by Shaquille O Neil on 2025-10-26.
+// MARK:   Created by Shaquille O Neil on 2025-10-26.
 //
 
 //
 //  HomeView.swift
 //  PlugTrade
 //
-//  Created by mac on 2025-10-28.
+// MARK:   Created by Evelyne mac on 2025-10-28.
 //
 
 
@@ -190,51 +190,63 @@ struct ProductPost: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                ZStack {
-                    Circle()
-                        .fill(Color.blue.opacity(0.3))
-                        .frame(width: 32, height: 32)
+            NavigationLink(destination: PublicProfileView(userID: item.sellerID)){
+                HStack {
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.3))
+                            .frame(width: 32, height: 32)
 
-                    if let urlString = sellerImageURL,
-                       let url = URL(string: urlString) {
-                        AsyncImage(url: url) { image in
-                            image
+                        if let urlString = sellerImageURL,
+                           let url = URL(string: urlString) {
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                            } placeholder: {
+                                ProgressView()
+                                    .frame(width: 32, height: 32)
+                            }
+                        } else {
+                            Image(systemName: "person.fill")
                                 .resizable()
-                                .scaledToFill()
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                        } placeholder: {
-                            ProgressView()
-                                .frame(width: 32, height: 32)
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
+                                .foregroundColor(.blue)
                         }
-                    } else {
-                        Image(systemName: "person.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20, height: 20)
-                            .foregroundColor(.blue)
+                    }.onAppear {
+                        authManager.fetchSeller(id: item.sellerID) { url in
+                                       sellerImageURL = url
+                                   }
                     }
-                }.onAppear {
-                    authManager.fetchSeller(id: item.sellerID) { url in
-                                   sellerImageURL = url
-                               }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.sellerName)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Text(item.location)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    
+                    Spacer()
                 }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.sellerName)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Text(item.location)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-                
-                Spacer()
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
+           
             
-            NavigationLink(destination: DetailView(item: item)) {
+            
+            NavigationLink(destination:{
+                // MARK: adjusted by S.Neil
+                if item.itemType == .forTrade {
+                    TradeItemCard(item: item, onPropose: {})
+                } else {
+                    DetailView(item: item)
+                }
+                // MARK: end of adjustment
+            }) {
                 AsyncImage(url: URL(string: item.imageURL)) { phase in
                     switch phase {
                     case .empty:
@@ -275,7 +287,9 @@ struct ProductPost: View {
             }
             
             
-            //MARK: BADGE
+         
+            
+            //MARK: BADGE S.Neil
             HStack {
                 if item.itemType == .forSale {
                     Text("$\(item.price ?? 0.0, specifier: "%.0f")")

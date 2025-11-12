@@ -108,9 +108,9 @@ private struct ExpandedContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // 点图进详情
-            NavigationLink(destination: DetailView(item: item)) {
+        
                 ProductImage(urlString: item.imageURL)
-            }
+            
 
             HStack {
                 // 左侧价格/标签（Trade 显示“For Trade”）
@@ -314,4 +314,5 @@ private struct EditTradeSheet: View {
 
 #Preview {
     ProductsForTrade()
+        .environmentObject(ProductManager.shared)
 }
