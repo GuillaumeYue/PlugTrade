@@ -1,3 +1,6 @@
+//
+// MARK: Created by S.Neil Created by Shaquille O Neil on 2025-10-26.
+//
 import SwiftUI
 import FirebaseAuth
 

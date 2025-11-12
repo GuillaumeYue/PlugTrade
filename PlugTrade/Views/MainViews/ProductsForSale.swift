@@ -43,6 +43,7 @@ private struct ProductCard: View {
                         expandedItemID = isExpanded ? nil : item.id
                     }
                 }
+                .zIndex(1)
 
             if isExpanded {
                 ExpandedContent(item: item)
@@ -101,9 +102,10 @@ private struct ExpandedContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // 点图进详情
-            NavigationLink(destination: DetailView(item: item)) {
+       
+            // MARK: SNeil
                 ProductImage(urlString: item.imageURL)
-            }
+            // MARK: end
 
             HStack {
                 // 左侧价格（出售一定有价格，空则显示 0）

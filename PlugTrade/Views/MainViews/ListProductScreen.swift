@@ -1,14 +1,9 @@
-//
-//  ListProductScreen.swift
-//  PlugTrade
-//
-//  Created by Shaquille O Neil on 2025-10-26.
-//
+
 //
 //  PostItemView.swift
 //  PlugTrade
 //
-//  Created by mac on 2025-11-03.
+// MARK:   Created by Evelyne mac on 2025-11-03.
 //
 
 import SwiftUI
@@ -57,7 +52,7 @@ struct ListProductScreen: View {
                 }
                 
                 Section(header: Text("Product Details")) {
-                    
+                    // MARK:  added by SNEIL
                     Picker("Transaction Type", selection:
                             $selectedType){
                         ForEach(ItemTypeEnum.allCases, id: \.self){
@@ -65,12 +60,15 @@ struct ListProductScreen: View {
                             Text(itemType.rawValue.capitalized).tag(itemType)
                         }
                     }
+                    // MARK: end
                     TextField("Title", text: $title)
                     
+                    // MARK: SNEIL
                     if selectedType == .forSale {
                         TextField("Price", text: $price)
                             .keyboardType(.decimalPad)
                     }
+                    // MARK: end of adjustment
                     
                     TextField("Quantity", text: $quantity)
                         .keyboardType(.numberPad)
@@ -106,11 +104,12 @@ struct ListProductScreen: View {
                         }
                     }
                     .disabled(
+                        // MARK: adjusted by S.Neil
                         selectedType == .forSale
                            ? (isPosting || title.isEmpty || price.isEmpty || location.isEmpty || quantity.isEmpty)
                        
                         : (isPosting || title.isEmpty ||  location.isEmpty || quantity.isEmpty))
-                       
+                    // MARK: end of adjustment
                 }
             }
             .navigationTitle("Post New Item")

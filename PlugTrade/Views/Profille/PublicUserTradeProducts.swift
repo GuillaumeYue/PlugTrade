@@ -2,12 +2,12 @@
 //  UserSalesProducts.swift
 //  PlugTrade
 //
-//  Created by Shaquille O Neil on 2025-11-04.
+// MARK:  Created by Shaquille O Neil on 2025-11-04.
 //
 
 import SwiftUI
 
-struct UserSalesProducts: View {
+struct PublicUserTradeProducts: View {
     
     @EnvironmentObject var productManager: ProductManager
     let item: Item
@@ -21,7 +21,7 @@ struct UserSalesProducts: View {
                         .font(.headline)
                         .foregroundColor(.black)
                     
-                    Text("$\(item.price ?? 0, specifier: "%.2f")")
+                    Text("For Trade")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -45,7 +45,7 @@ struct UserSalesProducts: View {
                 }
             }
             if isExpanded {
-                NavigationLink(destination: DetailView(item: item)) {
+                NavigationLink(destination: TradeItemCard(item: item , onPropose: {})) {
                     AsyncImage(url: URL(string: item.imageURL)) { phase in
                         switch phase {
                         case .empty:
@@ -86,7 +86,7 @@ struct UserSalesProducts: View {
                 }
                 
                 HStack {
-                    Text("$\(item.price ?? 0, specifier: "%.0f")")
+                    Text("For Trade")
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
@@ -111,6 +111,6 @@ struct UserSalesProducts: View {
 }
 
 #Preview {
-    UserSalesProducts(item: SampleData.items.first!)
+    PublicUserTradeProducts(item: SampleData.items.first!)
         .environmentObject(ProductManager.shared)
 }

@@ -2,7 +2,7 @@
 //  FirebaseCartManager.swift
 //  PlugTrade
 //
-//  Created by Shaquille O Neil on 2025-11-03.
+// MARK: Created by Evelyne on 2025-11-03.
 //
 
 

@@ -230,7 +230,7 @@ class AuthService: ObservableObject {
     }
     
     
-    //MARK: Fetch seller of item
+    //MARK: Fetch seller of item(S.Neil)
     func fetchSeller(id: String, completion: @escaping (String?) -> Void) {
         guard !id.isEmpty else {
             completion(nil)
@@ -247,6 +247,28 @@ class AuthService: ObservableObject {
             }
         }
     }
+    
+    //MARK: Fetch seller of item profile(S.Neil)
+    func fetchSellerProfile(userID: String, completion: @escaping (String, String) -> Void) {
+        let db = Firestore.firestore()
+        db.collection("users").document(userID).getDocument { snapshot, error in
+            if let error = error {
+                print("Error fetching seller profile: \(error.localizedDescription)")
+                completion("Error", "")
+                return
+            }
+            
+            guard let data = snapshot?.data() else {
+                completion("Not Found", "")
+                return
+            }
+            
+            let sellerName = data["name"] as? String ?? "Unnamed"
+            let profilePictureURL = data["profilePictureURL"] as? String ?? ""
+            completion(sellerName, profilePictureURL)
+        }
+    }
+
 
 }
 

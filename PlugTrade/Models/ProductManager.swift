@@ -2,7 +2,7 @@
 //  ProductManager.swift
 //  PlugTrade
 //
-//  Created by Shaquille O Neil on 2025-11-03.
+// MARK:  Created Evelyne on 2025-11-03.
 //
 
 import Foundation
@@ -28,6 +28,7 @@ class ProductManager: ObservableObject {
         fetchProducts()
     }
     
+    // MARK: Created by S.Neil
     func fetchProducts() {
         isLoading = true
         db.collection("products")
@@ -53,6 +54,7 @@ class ProductManager: ObservableObject {
             }
     }
     
+   
     func fetchUserProducts() {
         guard let uid = Auth.auth().currentUser?.uid else {
             stopUserProductsListener()
@@ -85,6 +87,11 @@ class ProductManager: ObservableObject {
                 }
             }
     }
+    
+    // MARK: end of creation
+    
+    
+    // MARK: Created by Han
 
     func stopUserProductsListener() {
         userProductsListener?.remove()
@@ -95,6 +102,7 @@ class ProductManager: ObservableObject {
             self.userProductsLoaded = false
         }
     }
+    // MARK: end of creation by Han
 
     func addProduct(
         title: String,
@@ -141,6 +149,28 @@ class ProductManager: ObservableObject {
             save("https://via.placeholder.com/300")
         }
     }
+    
+    
+    // MARK: Created by S.Neil
+    func fetchSellerProducts(for sellerID: String) {
+        isLoading = true
+        db.collection("products")
+            .whereField("sellerID", isEqualTo: sellerID)
+            .getDocuments { snapshot, error in
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    if let error = error {
+                        print("Error fetching seller products: \(error.localizedDescription)")
+                        return
+                    }
+                    self.userProducts = snapshot?.documents.compactMap { doc in
+                        try? doc.data(as: Item.self)
+                    } ?? []
+                }
+            }
+    }
+    
+    // MARK: end of creation by S.Neil
 
 
     

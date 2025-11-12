@@ -37,17 +37,6 @@ struct Item: Identifiable, Codable {
     let quantity: Int
     let itemType: ItemTypeEnum
     
-//    enum CodingKeys: String, CodingKey {
-//        case id
-//        case title
-//        case price
-//        case location
-//        case category
-//        case imageURL
-//        case sellerID
-//        case sellerName
-//        case timestamp
-//    }
 }
 
 struct SampleData {
@@ -62,6 +51,9 @@ struct SampleData {
              itemType: .forTrade),
     ]
 }
+
+
+// MARK: Created by Evelyne
 
 class CartManager: ObservableObject {
     @Published var cartItems: [Item] = []
@@ -81,12 +73,12 @@ class CartManager: ObservableObject {
     }
     
     var totalPrice: Double {
+        // MARK: Adjusted by S.Neil
         cartItems
-            .filter { $0.itemType == .forSale }   // keep only sale items
+            .filter { $0.itemType == .forSale }
             .reduce(0) { total, item in
-                total + (item.price ?? 0)         // add price or 0 if nil
-            }
-
+                total + (item.price ?? 0)
+            }// MARK: end of adjustment
         
         
     }

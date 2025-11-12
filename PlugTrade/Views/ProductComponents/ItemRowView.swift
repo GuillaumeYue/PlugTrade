@@ -2,7 +2,7 @@
 //  ItemRowView.swift
 //  PlugTrade
 //
-//  Created by mac on 2025-10-28.
+// MARK:   Created Evelyne by mac on 2025-10-28.
 //
 
 
