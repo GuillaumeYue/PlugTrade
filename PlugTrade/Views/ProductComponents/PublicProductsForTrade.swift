@@ -14,7 +14,6 @@ struct PublicProductsForTrade: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 12) {
-                // Show only this seller’s "for sale" items
                 ForEach(productManager.items.filter {
                     $0.sellerID == sellerID && $0.itemType == .forTrade
                 }) { item in
