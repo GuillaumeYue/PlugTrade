@@ -187,6 +187,9 @@ class AuthService: ObservableObject {
             }
             ref.downloadURL { url, error in
                 if let url = url {
+                    
+                    // db.collection.users.uid.update(imageurl = url)
+                    
                     completion(.success(url.absoluteString))
                 } else if let error = error {
                     completion(.failure(error))

@@ -36,7 +36,7 @@ struct TradeProposalSheet: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .toast(isPresented: $toast.show, message: toast.message)
-        .onAppear { productManager.fetchUserProducts() }
+        .onAppear { productManager.fetchMyProducts() }
     }
     // MARK: Sections
     private var header: some View {
@@ -63,27 +63,26 @@ struct TradeProposalSheet: View {
     
     private var contentList: some View {
         Group {
-            if (productManager.userProductsLoaded == false && productManager.userProducts.isEmpty) {
+            if (productManager.userProductsLoaded == false && productManager.MyProducts.isEmpty) {
                 VStack(spacing: 10) {
                     ProgressView()
                     Text("Loading my Post")
                         .font(.caption).foregroundColor(.secondary)
-                    Button("Reload") { productManager.fetchUserProducts() }
+                    Button("Reload") { productManager.fetchMyProducts() } // id
                         .buttonStyle(.bordered)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if productManager.userProductsLoaded == true && productManager.userProducts.isEmpty {
+            } else if productManager.userProductsLoaded == true && productManager.MyProducts.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "shippingbox").imageScale(.large)
                     Text("You haven't listed any items yet.").font(.subheadline)
                     Text("Post an item now to start trading!")
                         .font(.caption).foregroundColor(.secondary)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
                     Section(header: Text("Choose an item to trade")) {
-                        ForEach(productManager.userProducts) { item in
+                        ForEach(productManager.MyProducts) { item in
                             OfferSelectableRow(
                                 item: item,
                                 isSelected: selectedIDs.contains(item.id ?? ""),
@@ -202,7 +201,7 @@ struct OfferSelectableRow: View {
     struct TradeProposalSheet_Previews: PreviewProvider {
         static var previews: some View {
             let pm = ProductManager()
-            pm.userProducts = SampleData.items
+            pm.MyProducts = SampleData.items
             let auth = AuthService()
             let item =
                 SampleData.items.first { $0.itemType == .forTrade }
@@ -213,6 +212,7 @@ struct OfferSelectableRow: View {
             )
             .environmentObject(pm)
             .environmentObject(auth)
+            .environmentObject(ProductManager())
         }
     }
 #endif

@@ -17,6 +17,7 @@ class ProductManager: ObservableObject {
     @Published var items: [Item] = []
     @Published var isLoading = false
     @Published var userProducts: [Item] = []
+    @Published var MyProducts: [Item] = []
     @Published var userProductsLoaded = false
     @Published var userProductsLoading = false
     
@@ -88,6 +89,26 @@ class ProductManager: ObservableObject {
             }
     }
     
+    
+    
+    
+    func fetchMyProducts() {
+        guard let uid = Auth.auth().currentUser?.uid else {return}
+        
+        let query = db.collection("products").whereField("sellerID", isEqualTo: uid)
+        
+        query.getDocuments { (snapshot, error) in
+            if let error = error {
+                print("Error getting documents: \(error)")
+            }
+            
+            guard let documents = snapshot?.documents else {
+                self.MyProducts = []
+                return
+            }
+            self.MyProducts = documents.compactMap { try? $0.data(as: Item.self) }
+        }
+    }
     // MARK: end of creation
     
     
@@ -191,6 +212,7 @@ class ProductManager: ObservableObject {
                 }
                 
                 if let urlString = url?.absoluteString {
+                    // update the product.imageurl in the firestore database.
                     completion(.success(urlString))
                 } else {
                     completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get image URL"])))

@@ -13,6 +13,8 @@ struct TradeItemCard: View {
 
     @State private var sellerAvatarURL: String? = nil
     @EnvironmentObject private var authService: AuthService
+    @State private var sendTrade = false
+    
 
     init(item: Item, onPropose: @escaping () -> Void) {
         self.item = item
@@ -60,21 +62,39 @@ struct TradeItemCard: View {
                     Chip(text: item.category.rawValue.capitalized)
                 }
             }
-            Button(action: onPropose) {
-                Text("Send Request")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+//            Button(action: onPropose) {
+//                Text("Send Request")
+//                    .frame(maxWidth: .infinity)
+//                    .padding(.vertical, 12)
+//            }
+//            .buttonStyle(.borderedProminent)
+//            .cornerRadius(12)
+            Button("Send Request"){
+                sendTrade = true
             }
             .buttonStyle(.borderedProminent)
             .cornerRadius(12)
+            .sheet(isPresented: $sendTrade){
+                TradeProposalSheet(targetItem: item, isPresented: $sendTrade)
+            }
         }
         .padding(14)
         .background(Color(.secondarySystemBackground))
         .cornerRadius(18)
         .onAppear {
-            authService.fetchSeller(id: item.sellerID) { url in
-                sellerAvatarURL = url
+            
+            // check the curren user
+            if let currentUser = authService.currentUser {
+                authService.fetchSeller(id: currentUser.id ?? item.sellerID) { url in
+                    sellerAvatarURL = url
+                }
+            }else {
+                authService.fetchSeller(id: item.sellerID) { url in
+                    sellerAvatarURL = url
+                }
             }
+            
+            
         }
     }
 }
@@ -89,6 +109,7 @@ struct TradeItemCard: View {
                 .environmentObject(AuthService())
                 .padding()
                 .previewLayout(.sizeThatFits)
+                .environmentObject(ProductManager())
         }
     }
 #endif
