@@ -48,13 +48,17 @@ struct TradeItemCard: View {
                 .font(.headline)
                 .lineLimit(2)
 
+            
             HStack(spacing: 10) {
-                AvatarThumb(url: sellerAvatarURL)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.sellerName).font(.subheadline)
-                    Text(item.location).font(.caption).foregroundColor(
-                        .secondary
-                    )
+                NavigationLink(destination: PublicProfileView(userID: item.sellerID)){
+                    
+                    AvatarThumb(url: sellerAvatarURL)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.sellerName).font(.subheadline)
+                        Text(item.location).font(.caption).foregroundColor(
+                            .secondary
+                        )
+                    }
                 }
                 Spacer()
                 HStack(spacing: 6) {
@@ -84,16 +88,16 @@ struct TradeItemCard: View {
         .onAppear {
             
             // check the curren user
-            if let currentUser = authService.currentUser {
-                authService.fetchSeller(id: currentUser.id ?? item.sellerID) { url in
-                    sellerAvatarURL = url
-                }
-            }else {
+//            if let currentUser = authService.currentUser {
+//                authService.fetchSeller(id: currentUser.id ?? item.sellerID) { url in
+//                    sellerAvatarURL = url
+//                }
+//            }else {
                 authService.fetchSeller(id: item.sellerID) { url in
                     sellerAvatarURL = url
                 }
-            }
-            
+//            }
+//            
             
         }
     }
