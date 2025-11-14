@@ -82,7 +82,7 @@ struct TradeProposalSheet: View {
             } else {
                 List {
                     Section(header: Text("Choose an item to trade")) {
-                        ForEach(productManager.MyProducts) { item in
+                        ForEach(productManager.MyProducts.filter{$0.itemType == .forTrade}) { item in
                             OfferSelectableRow(
                                 item: item,
                                 isSelected: selectedIDs.contains(item.id ?? ""),
