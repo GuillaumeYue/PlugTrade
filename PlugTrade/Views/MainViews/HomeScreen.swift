@@ -15,24 +15,23 @@
 
 
 import SwiftUI
+import SDWebImage   // not strictly required here, but ok to keep
 
 struct HomeScreen: View {
     @EnvironmentObject var productManager: ProductManager
     @State private var selectedCategory: Category?
-    @State private var showProfile = false
     @State private var showNotifications = false
+
     @ObservedObject private var authManager = AuthService.shared
     @ObservedObject private var cartManager = FirebaseCartManager()
-  
-    
-    
+
     var filteredItems: [Item] {
         if let category = selectedCategory, category != .all {
             return productManager.items.filter { $0.category == category }
         }
         return productManager.items
     }
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -46,11 +45,14 @@ struct HomeScreen: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 16) {
+
+                        // Notifications
                         Button(action: { showNotifications = true }) {
                             Image(systemName: "bell.fill")
                                 .foregroundColor(.blue)
                         }
-                        
+
+                        // Cart
                         NavigationLink(destination: CartView()) {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "cart.fill")
@@ -58,7 +60,7 @@ struct HomeScreen: View {
                                     .scaledToFit()
                                     .frame(width: 24, height: 24)
                                     .foregroundStyle(Color.blue)
-                                
+
                                 if cartManager.cartItems.count > 0 {
                                     ZStack {
                                         Circle()
@@ -73,6 +75,7 @@ struct HomeScreen: View {
                             }
                         }
 
+                        // Profile avatar
                         NavigationLink(destination: ProfileScreen()) {
                             ZStack {
                                 Circle()
@@ -81,16 +84,15 @@ struct HomeScreen: View {
 
                                 if let urlString = authManager.currentUser?.profilePictureURL,
                                    let url = URL(string: urlString) {
-                                    AsyncImage(url: url) { image in
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 32, height: 32)
-                                            .clipShape(Circle())
-                                    } placeholder: {
-                                        ProgressView()
-                                            .frame(width: 32, height: 32)
-                                    }
+
+                                    SDWebImageAsync(
+                                        url: url,
+                                        placeholder: Image(systemName: "person.fill")
+                                    )
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                                    .contentShape(Circle())
+
                                 } else {
                                     Image(systemName: "person.fill")
                                         .resizable()
@@ -100,7 +102,6 @@ struct HomeScreen: View {
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -109,28 +110,32 @@ struct HomeScreen: View {
             }
         }
     }
-    
+
+    // MARK: - Categories
+
     var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Categories")
                 .font(.headline)
                 .padding(.horizontal)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    CategoryCircle(icon: "square.grid.2x2", name: "All", category: .all, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "laptopcomputer", name: "Laptops", category: .laptop, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "iphone", name: "Mobile", category: .mobile, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "applewatch", name: "Watches", category: .watch, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "headphones", name: "Headsets", category: .headsets, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "ipad", name: "iPads", category: .ipad, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "ellipsis.circle", name: "Other", category: .other, selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "square.grid.2x2", name: "All",      category: .all,      selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "laptopcomputer",   name: "Laptops",  category: .laptop,   selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "iphone",           name: "Mobile",   category: .mobile,   selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "applewatch",       name: "Watches",  category: .watch,    selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "headphones",       name: "Headsets", category: .headsets, selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "ipad",             name: "iPads",    category: .ipad,     selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "ellipsis.circle",  name: "Other",    category: .other,    selectedCategory: $selectedCategory)
                 }
                 .padding(.horizontal)
             }
         }
     }
-    
+
+    // MARK: - Product Feed
+
     var productFeed: some View {
         VStack(spacing: 16) {
             if productManager.isLoading {
@@ -149,66 +154,40 @@ struct HomeScreen: View {
     }
 }
 
-struct CategoryCircle: View {
-    let icon: String
-    let name: String
-    let category: Category
-    @Binding var selectedCategory: Category?
-    
-    var isSelected: Bool {
-        selectedCategory == category || (selectedCategory == nil && category == .all)
-    }
-    
-    var body: some View {
-        Button(action: {
-            selectedCategory = category == .all ? nil : category
-        }) {
-            VStack(spacing: 8) {
-                Circle()
-                    .fill(isSelected ? Color.blue : Color.blue.opacity(0.2))
-                    .frame(width: 70, height: 70)
-                    .overlay(
-                        Image(systemName: icon)
-                            .font(.system(size: 28))
-                            .foregroundColor(isSelected ? .white : .blue)
-                    )
-                
-                Text(name)
-                    .font(.caption)
-                    .foregroundColor(isSelected ? .blue : .primary)
-            }
-        }
-    }
-}
+// MARK: - Product Card
 
 struct ProductPost: View {
     let item: Item
-    
+
     @ObservedObject private var authManager = AuthService.shared
     @State private var sellerImageURL: String?
     @State private var rotate = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            NavigationLink(destination: PublicProfileView(userID: item.sellerID)){
+
+            // Seller row
+            NavigationLink(destination: PublicProfileView(userID: item.sellerID)) {
                 HStack {
                     ZStack {
                         Circle()
                             .fill(Color.blue.opacity(0.3))
                             .frame(width: 32, height: 32)
 
-                        if let urlString = sellerImageURL,
-                           let url = URL(string: urlString) {
-                            AsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(Circle())
-                            } placeholder: {
-                                ProgressView()
-                                    .frame(width: 32, height: 32)
+                        if let sellerImageURL = sellerImageURL,
+                           let url = URL(string: sellerImageURL) {
+
+                            // FIXED — use GeometryReader to give UIKit the correct size
+                            GeometryReader { geo in
+                                SDWebImageAsync(
+                                    url: url,
+                                    placeholder: Image(systemName: "person.fill")
+                                )
+                                .frame(width: geo.size.width, height: geo.size.height)
+                                .clipShape(Circle())
                             }
+                            .frame(width: 32, height: 32) // <- final SwiftUI size
+
                         } else {
                             Image(systemName: "person.fill")
                                 .resizable()
@@ -216,12 +195,14 @@ struct ProductPost: View {
                                 .frame(width: 20, height: 20)
                                 .foregroundColor(.blue)
                         }
-                    }.onAppear {
-                        authManager.fetchSeller(id: item.sellerID) { url in
-                                       sellerImageURL = url
-                                   }
                     }
-                    
+                    .frame(width: 32, height: 32) // <- ensures stable container
+                    .onAppear {
+                        authManager.fetchSeller(id: item.sellerID) { url in
+                            sellerImageURL = url
+                        }
+                    }
+
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.sellerName)
                             .font(.subheadline)
@@ -230,45 +211,29 @@ struct ProductPost: View {
                             .font(.caption)
                             .foregroundColor(.gray)
                     }
-                    
+
                     Spacer()
                 }
                 .padding(.horizontal)
             }
-           
-            
-            
-            NavigationLink(destination:{
-                // MARK: adjusted by S.Neil
+
+
+            // Product image
+            NavigationLink(destination: {
                 if item.itemType == .forTrade {
                     TradeItemCard(item: item, onPropose: {})
                 } else {
                     DetailView(item: item)
                 }
-                // MARK: end of adjustment
             }) {
-                AsyncImage(url: URL(string: item.imageURL)) { phase in
-                    switch phase {
-                    case .empty:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 250)
-                            .overlay(ProgressView())
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 250)
-                            .clipped()
-                    case .failure:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 250)
-                            .overlay(Image(systemName: "photo"))
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
+                SDWebImageAsync(
+                    url: URL(string: item.imageURL),
+                    placeholder: Image(systemName: "photo")
+                )
+                .frame(maxWidth: 420)
+                .frame(height: 250)
+                .clipped()
+                .contentShape(Rectangle())
                 .overlay(
                     VStack {
                         Spacer()
@@ -285,19 +250,15 @@ struct ProductPost: View {
                     }
                 )
             }
-            
-            
-         
-            
-            //MARK: BADGE S.Neil
+
+            // Price / trade badge
             HStack {
                 if item.itemType == .forSale {
                     Text("$\(item.price ?? 0.0, specifier: "%.0f")")
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
-                }else{
-                    
+                } else {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.2.circlepath")
                             .font(.title3)
@@ -316,15 +277,11 @@ struct ProductPost: View {
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color.green.gradient)
-                            .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 2)
                     )
-
-                  
                 }
-               
-                
+
                 Spacer()
-                
+
                 HStack(spacing: 16) {
                     Image(systemName: "heart")
                     Image(systemName: "message")
@@ -333,15 +290,51 @@ struct ProductPost: View {
                 .font(.title3)
             }
             .padding(.horizontal)
-            
+
             Divider()
         }
     }
 }
 
+// MARK: - Category Circle
+
+struct CategoryCircle: View {
+    let icon: String
+    let name: String
+    let category: Category
+    @Binding var selectedCategory: Category?
+
+    var isSelected: Bool {
+        selectedCategory == category || (selectedCategory == nil && category == .all)
+    }
+
+    var body: some View {
+        Button(action: {
+            selectedCategory = category == .all ? nil : category
+        }) {
+            VStack(spacing: 8) {
+                Circle()
+                    .fill(isSelected ? Color.blue : Color.blue.opacity(0.2))
+                    .frame(width: 70, height: 70)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 28))
+                            .foregroundColor(isSelected ? .white : .blue)
+                    )
+
+                Text(name)
+                    .font(.caption)
+                    .foregroundColor(isSelected ? .blue : .primary)
+            }
+        }
+    }
+}
+
+// MARK: - Notifications
+
 struct NotificationsView: View {
     @Environment(\.dismiss) var dismiss
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -352,18 +345,21 @@ struct NotificationsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
+                    Button("Done") { dismiss() }
                 }
             }
         }
     }
 }
 
-struct HomeView_Previews: PreviewProvider {
+// MARK: - Preview
+
+struct HomeScreen_Previews: PreviewProvider {
     static var previews: some View {
-        HomeScreen()
-            .environmentObject(ProductManager.shared)
+        NavigationStack {
+            HomeScreen()
+                .environmentObject(ProductManager.shared)
+        }
     }
 }
+

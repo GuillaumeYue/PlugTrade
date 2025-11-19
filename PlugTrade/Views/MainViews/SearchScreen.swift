@@ -15,6 +15,7 @@
 
 
 import SwiftUI
+import SDWebImageSwiftUI  
 
 struct SearchScreen: View {
     @EnvironmentObject var productManager: ProductManager
@@ -38,6 +39,8 @@ struct SearchScreen: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                
+                // Category Buttons
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(Category.allCases, id: \.self) { category in
@@ -54,6 +57,7 @@ struct SearchScreen: View {
                     .padding()
                 }
                 
+                // States
                 if productManager.isLoading {
                     Spacer()
                     ProgressView()
@@ -64,28 +68,28 @@ struct SearchScreen: View {
                         .foregroundColor(.gray)
                     Spacer()
                 } else {
+                    
+                    // RESULTS GRID
                     ScrollView {
                         LazyVGrid(columns: [
                             GridItem(.fixed(190), spacing: 16),
                             GridItem(.fixed(190), spacing: 16)
                         ]) {
-                            // MARK: Adjusted by S.Neil
+                            
                             ForEach(filteredItems) { item in
-                                NavigationLink(destination:{
+                                NavigationLink(destination: {
                                     if item.itemType == .forTrade {
                                         TradeItemCard(item: item, onPropose: {})
                                     } else {
                                         DetailView(item: item)
                                     }
                                 }) {
-                                    ItemRowView(item: item)
+                                    ItemRowView(item: item)      // ← now uses SDWebImageAsync
                                         .aspectRatio(0.8, contentMode: .fit)
                                 }
                                 .buttonStyle(.plain)
                             }
-                            // MARK: end of adjustment
                         }
-                       
                     }
                 }
             }
@@ -98,6 +102,6 @@ struct SearchScreen: View {
 struct ProductView_Previews: PreviewProvider {
     static var previews: some View {
         SearchScreen()
-            .environmentObject(ProductManager.shared)
+            .environmentObject(ProductManager())
     }
 }

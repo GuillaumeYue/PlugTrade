@@ -2,7 +2,7 @@
 //  PublicProfileView.swift
 //  PlugTrade
 //
-// MARK:  Created by Shaquille O Neil on 2025-11-12.
+//  Created by Shaquille O Neil on 2025-11-12.
 //
 
 import SwiftUI
@@ -17,34 +17,46 @@ struct PublicProfileView: View {
     @State private var showsaleproducts: Bool = true
     @EnvironmentObject private var productManager: ProductManager
     
-    
     var body: some View {
-        
-        VStack{
+        VStack(spacing: 16) {
+
+            // MARK: - Profile Image
             if let url = URL(string: sellerImage), !sellerImage.isEmpty {
-                            AsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 120, height: 120)
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
-                            } placeholder: {
-                                ProgressView()
-                                    .frame(width: 120, height: 120)
-                            }
+                
+                SDWebImageAsync(
+                    url: URL(string: sellerImage),
+                    placeholder: Image(systemName: "person.circle.fill")
+                )
+                .frame(width: 120, height: 150)
+                .clipShape(Circle())
+                .aspectRatio(contentMode: .fit)
+                .overlay(
+                    Circle()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                )
+
             } else {
                 Image(systemName: "person.circle.fill")
                     .resizable()
                     .scaledToFill()
                     .frame(width: 120, height: 120)
                     .foregroundColor(.gray.opacity(0.6))
-                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                    )
             }
-            Text("\(sellerName)")
+
+            // MARK: - Name
+            Text(sellerName)
                 .font(.title)
+                .fontWeight(.bold)
+
             Divider()
-            Section(header: Text("Products")){
+
+            // MARK: - Product Toggle
+            Section(header: Text("Products")) {
                 Picker("", selection: $showsaleproducts) {
                     Text("Products for sale").tag(true)
                     Text("Products for trade").tag(false)
@@ -62,18 +74,17 @@ struct PublicProfileView: View {
             }
         }
         .navigationTitle(sellerName.isEmpty ? "Profile" : sellerName)
-        .onAppear{
-            authManager.fetchSellerProfile(userID: userID){
-                name, url in
+        .onAppear {
+            authManager.fetchSellerProfile(userID: userID) { name, url in
                 sellerName = name
                 sellerImage = url
-                
             }
         }
     }
 }
 
+// PREVIEW
 #Preview {
     PublicProfileView(userID: "iYje6iZ2snZ9ILWzxhPeGBxAp1F2")
-        
+        .environmentObject(ProductManager.shared)
 }
