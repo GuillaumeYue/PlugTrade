@@ -20,21 +20,22 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct PlugTradeApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var authService     = AuthService.shared
-        @StateObject private var productManager  = ProductManager.shared
-        @StateObject private var firebaseCart    = FirebaseCartManager()
-    
+
+    // CREATE THE GLOBALS HERE
+    @StateObject private var authService = AuthService.shared
+    @StateObject private var productManager = ProductManager.shared
+    @StateObject private var firebaseCart = FirebaseCartManager()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(authService)
-                                .environmentObject(productManager)
-                                .environmentObject(firebaseCart)
-                                .onAppear {
-                                    productManager.fetchUserProducts()
-                                }
-
-               
+                .environmentObject(productManager)
+                .environmentObject(firebaseCart)
+                .onAppear {
+                    productManager.fetchUserProducts()
+                }
         }
     }
 }
+

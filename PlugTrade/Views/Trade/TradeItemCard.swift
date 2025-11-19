@@ -110,10 +110,10 @@ struct TradeItemCard: View {
                 SampleData.items.first { $0.itemType == .forTrade }
                 ?? SampleData.items[0]
             return TradeItemCard(item: i, onPropose: {})
-                .environmentObject(AuthService())
+                .environmentObject(AuthService.shared)
                 .padding()
                 .previewLayout(.sizeThatFits)
-                .environmentObject(ProductManager())
+                .environmentObject(ProductManager.shared)
         }
     }
 #endif

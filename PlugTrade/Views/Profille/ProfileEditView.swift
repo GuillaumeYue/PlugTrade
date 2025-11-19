@@ -6,7 +6,7 @@ import PhotosUI
 
 struct ProfileEditView: View {
 
-    @StateObject private var authManager = AuthService.shared
+    @EnvironmentObject private var authManager: AuthService
 
     @State private var userName: String = ""
     @State private var selectedImage: PhotosPickerItem?

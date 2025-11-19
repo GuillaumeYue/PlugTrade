@@ -41,13 +41,13 @@ struct Item: Identifiable, Codable {
 
 struct SampleData {
     static let items: [Item] = [
-        Item(id: UUID().uuidString, title: "iPhone 15 Pro", price: 1199, location: "Montreal", category: .mobile, imageURL: "https://via.placeholder.com/300", sellerID: "sample", sellerName: "Eve Lyne", timestamp: Date(),quantity: 3,
+        Item(id: UUID().uuidString, title: "iPhone 15 Pro", price: 1199, location: "Montreal", category: .mobile, imageURL: "", sellerID: "sample", sellerName: "Eve Lyne", timestamp: Date(),quantity: 3,
         itemType: .forSale),
-        Item(id: UUID().uuidString, title: "Samsung Galaxy S24", price: nil, location: "Laval", category: .mobile, imageURL: "https://via.placeholder.com/300", sellerID: "sample", sellerName: "Eve Lyne", timestamp: Date(),quantity: 3,
+        Item(id: UUID().uuidString, title: "Samsung Galaxy S24", price: nil, location: "Laval", category: .mobile, imageURL: "", sellerID: "sample", sellerName: "Eve Lyne", timestamp: Date(),quantity: 3,
              itemType: .forTrade),
-        Item(id: UUID().uuidString, title: "MacBook Pro 16\"", price: 2499, location: "Montreal", category: .laptop, imageURL: "https://via.placeholder.com/300", sellerID: "sample", sellerName: "Eve Lyne", timestamp: Date(),quantity: 3,
+        Item(id: UUID().uuidString, title: "MacBook Pro 16\"", price: 2499, location: "Montreal", category: .laptop, imageURL: "", sellerID: "sample", sellerName: "Eve Lyne", timestamp: Date(),quantity: 3,
              itemType: .forSale),
-        Item(id: UUID().uuidString, title: "Dell XPS 13", price: nil, location: "Longueuil", category: .laptop, imageURL: "https://via.placeholder.com/300", sellerID: "sample", sellerName: "Eve Lyne", timestamp: Date(),quantity: 3,
+        Item(id: UUID().uuidString, title: "Dell XPS 13", price: nil, location: "Longueuil", category: .laptop, imageURL: "", sellerID: "sample", sellerName: "Eve Lyne", timestamp: Date(),quantity: 3,
              itemType: .forTrade),
     ]
 }

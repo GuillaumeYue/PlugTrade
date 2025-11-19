@@ -33,7 +33,7 @@ struct MyProducts: View {
 
 #Preview {
     MyProducts()
-        .environmentObject(ProductManager())
-        .environmentObject(AuthService())
+        .environmentObject(ProductManager.shared)
+        .environmentObject(AuthService.shared)
 }
 

@@ -17,7 +17,6 @@ struct TradeScreen: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                signInBanner
                 searchBar
                 categoryChips
                 contentList
@@ -40,26 +39,6 @@ struct TradeScreen: View {
         }
     }
 
-    // MARK: Sections
-    private var signInBanner: some View {
-        Group {
-            if authService.currentUser == nil {
-                HStack(spacing: 12) {
-                    Image(systemName: "person.crop.circle.badge.exclam")
-                        .imageScale(.large)
-                    Text("Sign in to start trading").font(.subheadline)
-                    Spacer()
-                    NavigationLink(destination: AuthGate()) {
-                        Text("Sign in").font(.subheadline).bold()
-                    }
-                }
-                .padding(12)
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(12)
-                .padding([.horizontal, .top])
-            }
-        }
-    }
 
     private var searchBar: some View {
         HStack(spacing: 8) {

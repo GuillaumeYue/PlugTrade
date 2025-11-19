@@ -43,7 +43,7 @@ class AuthService: ObservableObject {
                         id: uid,
                         name: name,
                         email: email,
-                        profilePictureURL: profileURL ?? "https://via.placeholder.com/150"
+                        profilePictureURL: profileURL ?? ""
                     )
                     
                     do {
@@ -103,7 +103,7 @@ class AuthService: ObservableObject {
                             id: user.uid,
                             name: user.displayName ?? "User",
                             email: user.email ?? "user@example.com",
-                            profilePictureURL: user.photoURL?.absoluteString ?? "https://via.placeholder.com/150"
+                            profilePictureURL: user.photoURL?.absoluteString ?? ""
                         )
                         do {
                             try self.db.collection("users").document(user.uid).setData(from: appUser) { error in
@@ -146,11 +146,14 @@ class AuthService: ObservableObject {
             
             do {
                 let user = try snapshot.data(as: appUser.self)
+                print("🔥 Loaded profile URL from Firestore:", user.profilePictureURL)
                 DispatchQueue.main.async { self.currentUser = user }
                 completion(.success(user))
             } catch {
                 completion(.failure(error))
             }
+            
+            
         }
     }
     

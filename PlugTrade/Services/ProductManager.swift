@@ -167,7 +167,7 @@ class ProductManager: ObservableObject {
                 }
             }
         } else {
-            save("https://via.placeholder.com/300")
+            save("")
         }
     }
     

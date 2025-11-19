@@ -15,7 +15,7 @@ struct PublicProfileView: View {
     @State var sellerName: String = ""
     @State var sellerImage = ""
     @State private var showsaleproducts: Bool = true
-    @StateObject private var productManager = ProductManager.shared
+    @EnvironmentObject private var productManager: ProductManager
     
     
     var body: some View {
