@@ -19,6 +19,7 @@ import SDWebImage   // not strictly required here, but ok to keep
 
 struct HomeScreen: View {
     @EnvironmentObject var productManager: ProductManager
+    @EnvironmentObject var notificationService: NotificationService
     @State private var selectedCategory: Category?
     @State private var showNotifications = false
 
@@ -48,8 +49,22 @@ struct HomeScreen: View {
 
                         // Notifications
                         Button(action: { showNotifications = true }) {
-                            Image(systemName: "bell.fill")
-                                .foregroundColor(.blue)
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: "bell.fill")
+                                    .foregroundColor(.blue)
+                                
+                                if notificationService.unreadCount > 0 {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 16, height: 16)
+                                        Text("\(notificationService.unreadCount)")
+                                            .font(.caption2)
+                                            .foregroundColor(.white)
+                                    }
+                                    .offset(x: 8, y: -8)
+                                }
+                            }
                         }
 
                         // Cart
@@ -107,6 +122,7 @@ struct HomeScreen: View {
             }
             .sheet(isPresented: $showNotifications) {
                 NotificationsView()
+                    .environmentObject(notificationService)
             }
         }
     }
@@ -334,20 +350,140 @@ struct CategoryCircle: View {
 
 struct NotificationsView: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject private var notificationService: NotificationService
+    @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var productManager: ProductManager
+    
+    @State private var selectedNotification: AppNotification?
+    @State private var showDetailSheet = false
 
     var body: some View {
         NavigationView {
-            List {
-                Text("No notifications yet")
-                    .foregroundColor(.gray)
+            Group {
+                if notificationService.notifications.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "bell.slash")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                        Text("No notifications yet")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(notificationService.notifications) { notification in
+                            NotificationRow(notification: notification)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    selectedNotification = notification
+                                    showDetailSheet = true
+                                    
+                                    // Mark as read when tapped
+                                    if !notification.isRead, let id = notification.id {
+                                        notificationService.markAsRead(id)
+                                    }
+                                }
+                        }
+                    }
+                }
             }
             .navigationTitle("Notifications")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !notificationService.notifications.isEmpty {
+                        Button("Mark All Read") {
+                            notificationService.markAllAsRead()
+                        }
+                        .font(.subheadline)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") { dismiss() }
                 }
             }
+            .sheet(isPresented: $showDetailSheet) {
+                if let notification = selectedNotification {
+                    NotificationDetailSheet(
+                        notification: notification,
+                        isPresented: $showDetailSheet
+                    )
+                    .environmentObject(authService)
+                    .environmentObject(productManager)
+                    .environmentObject(notificationService)
+                }
+            }
+        }
+    }
+}
+
+struct NotificationRow: View {
+    let notification: AppNotification
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Icon based on type
+            Image(systemName: iconForType(notification.type))
+                .font(.title3)
+                .foregroundColor(colorForType(notification.type))
+                .frame(width: 40, height: 40)
+                .background(colorForType(notification.type).opacity(0.1))
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(notification.title)
+                    .font(.headline)
+                    .foregroundColor(notification.isRead ? .secondary : .primary)
+                
+                Text(notification.body)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+                
+                Text(notification.timestamp, style: .relative)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            if !notification.isRead {
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 8, height: 8)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private func iconForType(_ type: NotificationType) -> String {
+        switch type {
+        case .tradeProposal:
+            return "arrow.triangle.swap"
+        case .tradeAccepted:
+            return "checkmark.circle.fill"
+        case .tradeRejected:
+            return "xmark.circle.fill"
+        case .message:
+            return "message.fill"
+        case .other:
+            return "bell.fill"
+        }
+    }
+    
+    private func colorForType(_ type: NotificationType) -> Color {
+        switch type {
+        case .tradeProposal:
+            return .blue
+        case .tradeAccepted:
+            return .green
+        case .tradeRejected:
+            return .red
+        case .message:
+            return .purple
+        case .other:
+            return .gray
         }
     }
 }

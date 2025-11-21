@@ -26,6 +26,7 @@ struct ContentView: View {
                                 }
                             }
                         }
+                        .environmentObject(NotificationService.shared)
                 } else if authManager.currentUser == nil {
                     AuthGate()
                 } else {
@@ -33,6 +34,7 @@ struct ContentView: View {
                         // another at main page load listening
                         .onAppear {
                             productManager.fetchUserProducts()
+                            NotificationService.shared.startListening()
                         }
                 }
             }
@@ -41,8 +43,10 @@ struct ContentView: View {
         .onChange(of: authManager.currentUser?.id) { _ in
             if Auth.auth().currentUser != nil {
                 productManager.fetchUserProducts()
+                NotificationService.shared.startListening()
             } else {
                 productManager.stopUserProductsListener()
+                NotificationService.shared.stopListening()
             }
         }
     }

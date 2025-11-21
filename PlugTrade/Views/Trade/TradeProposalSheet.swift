@@ -7,6 +7,7 @@
 
 import FirebaseFirestore
 import SwiftUI
+import Foundation
 
 struct TradeProposalSheet: View {
     let targetItem: Item
@@ -147,11 +148,34 @@ struct TradeProposalSheet: View {
         Firestore.firestore().collection("trade_proposals").addDocument(
             data: payload
         ) { error in
-            isSubmitting = false
+            DispatchQueue.main.async {
+                self.isSubmitting = false
+            }
             if let error = error {
-                toast = ("Proposal failed:\(error.localizedDescription)", true)
+                DispatchQueue.main.async {
+                    self.toast = ("Proposal failed:\(error.localizedDescription)", true)
+                }
             } else {
-                toast = ("Proposal sent successfully!", true)
+                DispatchQueue.main.async {
+                    self.toast = ("Proposal sent successfully!", true)
+                }
+                
+                // Create notification for the seller
+                let sellerID = targetItem.sellerID
+                let senderName = authService.currentUser?.name ?? "Someone"
+                
+                print("📤 Creating notification for seller: \(sellerID)")
+                print("   Sender: \(senderName)")
+                print("   Product ID: \(productID)")
+                
+                NotificationService.shared.createNotification(
+                    userId: sellerID,
+                    title: "New Trade Proposal",
+                    body: "\(senderName) wants to trade with you",
+                    type: .tradeProposal,
+                    relatedItemId: productID
+                )
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
                     isPresented = false
                 }

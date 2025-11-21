@@ -25,6 +25,7 @@ struct PlugTradeApp: App {
     @StateObject private var authService = AuthService.shared
     @StateObject private var productManager = ProductManager.shared
     @StateObject private var firebaseCart = FirebaseCartManager()
+    @StateObject private var notificationService = NotificationService.shared
 
     var body: some Scene {
         WindowGroup {
@@ -32,6 +33,7 @@ struct PlugTradeApp: App {
                 .environmentObject(authService)
                 .environmentObject(productManager)
                 .environmentObject(firebaseCart)
+                .environmentObject(notificationService)
                 .onAppear {
                     productManager.fetchUserProducts()
                 }
