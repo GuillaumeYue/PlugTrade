@@ -13,6 +13,8 @@ struct TradeItemCard: View {
 
     @State private var sellerAvatarURL: String? = nil
     @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var productManager: ProductManager
+    @EnvironmentObject private var notificationService: NotificationService
     @State private var sendTrade = false
     
 
@@ -22,27 +24,30 @@ struct TradeItemCard: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            AsyncImage(url: URL(string: item.imageURL)) { phase in
-                switch phase {
-                case .empty:
-                    ZStack {
-                        Rectangle().fill(Color(.secondarySystemBackground))
-                        ProgressView()
+            NavigationLink(destination: TradeDetailView(item: item)) {
+                AsyncImage(url: URL(string: item.imageURL)) { phase in
+                    switch phase {
+                    case .empty:
+                        ZStack {
+                            Rectangle().fill(Color(.secondarySystemBackground))
+                            ProgressView()
+                        }
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    case .failure:
+                        ZStack {
+                            Rectangle().fill(Color(.secondarySystemBackground))
+                            Image(systemName: "photo")
+                        }
+                    @unknown default:
+                        EmptyView()
                     }
-                case .success(let image):
-                    image.resizable().scaledToFill()
-                case .failure:
-                    ZStack {
-                        Rectangle().fill(Color(.secondarySystemBackground))
-                        Image(systemName: "photo")
-                    }
-                @unknown default:
-                    EmptyView()
                 }
+                .frame(height: 180)
+                .clipped()
+                .cornerRadius(16)
             }
-            .frame(height: 180)
-            .clipped()
-            .cornerRadius(16)
+            .buttonStyle(.plain)
 
             Text(item.title)
                 .font(.headline)
@@ -80,6 +85,9 @@ struct TradeItemCard: View {
             .cornerRadius(12)
             .sheet(isPresented: $sendTrade){
                 TradeProposalSheet(targetItem: item, isPresented: $sendTrade)
+                    .environmentObject(authService)
+                    .environmentObject(productManager)
+                    .environmentObject(notificationService)
             }
         }
         .padding(18)
