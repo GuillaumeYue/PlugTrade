@@ -2,20 +2,11 @@
 //  HomeScreen.swift
 //  PlugTrade
 //
-// MARK:   Created by Shaquille O Neil on 2025-10-26.
+//  Created by Shaquille O Neil on 2025-10-26.
 //
-
-//
-//  HomeView.swift
-//  PlugTrade
-//
-// MARK:   Created by Evelyne mac on 2025-10-28.
-//
-
-
 
 import SwiftUI
-import SDWebImage   // not strictly required here, but ok to keep
+import SDWebImage
 
 struct HomeScreen: View {
     @EnvironmentObject var productManager: ProductManager
@@ -23,9 +14,9 @@ struct HomeScreen: View {
     @State private var selectedCategory: Category?
     @State private var showNotifications = false
 
+    @EnvironmentObject var cartManager: FirebaseCartManager
+
     @ObservedObject private var authManager = AuthService.shared
-    @ObservedObject private var cartManager = FirebaseCartManager()
-    @State private var animateBlobs = false
 
 
     var filteredItems: [Item] {
@@ -36,6 +27,7 @@ struct HomeScreen: View {
     }
 
     var body: some View {
+
         let circleBackgroundLayout: [(Color, CGFloat, CGFloat, CGFloat)] = [
             (.green.opacity(0.55), 260, -210, -490),
             (.purple.opacity(0.20), 160,  140, -280),
@@ -46,26 +38,26 @@ struct HomeScreen: View {
         ]
 
         NavigationStack {
-            ZStack{
-               
+            ZStack {
+
+                // Background gradient
                 LinearGradient(
-                       colors: [Color.white, Color.gray.opacity(0.05)],
-                       startPoint: .topLeading,
-                       endPoint: .bottomTrailing
-                   )
-                   .ignoresSafeArea()
+                    colors: [Color.white, Color.gray.opacity(0.05)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-                  
-                   ForEach(0..<circleBackgroundLayout.count, id: \.self) { i in
-                       let circle = circleBackgroundLayout[i]
-                       Circle()
-                           .fill(circle.0)
-                           .frame(width: circle.1, height: circle.1)
-                           .offset(x: circle.2, y: circle.3)
-                   }
+                // Background circles
+                ForEach(0..<circleBackgroundLayout.count, id: \.self) { i in
+                    let circle = circleBackgroundLayout[i]
+                    Circle()
+                        .fill(circle.0)
+                        .frame(width: circle.1, height: circle.1)
+                        .offset(x: circle.2, y: circle.3)
+                }
 
-                
-                
+                // MAIN CONTENT
                 ScrollView {
                     VStack(spacing: 20) {
                         categoriesSection
@@ -78,56 +70,27 @@ struct HomeScreen: View {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         HStack(spacing: 16) {
 
-<<<<<<< Updated upstream
-                        // Notifications
-                        Button(action: { showNotifications = true }) {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "bell.fill")
-                                    .foregroundColor(.blue)
-                                
-                                if notificationService.unreadCount > 0 {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.red)
-                                            .frame(width: 16, height: 16)
-                                        Text("\(notificationService.unreadCount)")
-                                            .font(.caption2)
-                                            .foregroundColor(.white)
-                                    }
-                                    .offset(x: 8, y: -8)
-                                }
-                            }
-                        }
-
-                        // Cart
-                        NavigationLink(destination: CartView()) {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "cart.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                    .foregroundStyle(Color.blue)
-
-                                if cartManager.cartItems.count > 0 {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.red)
-                                            .frame(width: 16, height: 16)
-                                        Text("\(cartManager.cartItems.count)")
-                                            .font(.caption2)
-                                            .foregroundColor(.white)
-                                    }
-                                    .offset(x: 8, y: -8)
-                                }
-=======
-                            // Notifications
+                            // NOTIFICATIONS — merged + unread badge
                             Button(action: { showNotifications = true }) {
-                                Image(systemName: "bell.fill")
-                                    .foregroundColor(.blue)
->>>>>>> Stashed changes
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "bell.fill")
+                                        .foregroundColor(.blue)
+
+                                    if notificationService.unreadCount > 0 {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 16, height: 16)
+                                            Text("\(notificationService.unreadCount)")
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                        }
+                                        .offset(x: 8, y: -8)
+                                    }
+                                }
                             }
 
-                            // Cart
+                            // CART — merged full version
                             NavigationLink(destination: CartView()) {
                                 ZStack(alignment: .topTrailing) {
                                     Image(systemName: "cart.fill")
@@ -150,7 +113,7 @@ struct HomeScreen: View {
                                 }
                             }
 
-                            // Profile avatar
+                            // PROFILE IMAGE
                             NavigationLink(destination: ProfileScreen()) {
                                 ZStack {
                                     Circle()
@@ -159,14 +122,12 @@ struct HomeScreen: View {
 
                                     if let urlString = authManager.currentUser?.profilePictureURL,
                                        let url = URL(string: urlString) {
-
                                         SDWebImageAsync(
                                             url: url,
                                             placeholder: Image(systemName: "person.fill")
                                         )
                                         .frame(width: 32, height: 32)
                                         .clipShape(Circle())
-                                        .contentShape(Circle())
 
                                     } else {
                                         Image(systemName: "person.fill")
@@ -178,32 +139,17 @@ struct HomeScreen: View {
                                 }
                             }
                         }
-                        
                     }
-
                 }
                 .sheet(isPresented: $showNotifications) {
                     NotificationsView()
+                        .environmentObject(notificationService)
                 }
-            }.onAppear {
-                animateBlobs = true
-            }
-<<<<<<< Updated upstream
-            .sheet(isPresented: $showNotifications) {
-                NotificationsView()
-                    .environmentObject(notificationService)
             }
         }
-=======
-
-            
-            
-        }//end of nav stack
->>>>>>> Stashed changes
     }
 
     // MARK: - Categories
-
     var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Categories")
@@ -223,11 +169,9 @@ struct HomeScreen: View {
                 .padding(.horizontal)
             }
         }
-        
     }
 
     // MARK: - Product Feed
-
     var productFeed: some View {
         VStack(spacing: 16) {
             if productManager.isLoading {
@@ -240,13 +184,14 @@ struct HomeScreen: View {
             } else {
                 ForEach(filteredItems.prefix(10)) { item in
                     ProductPost(item: item)
-                        .background(.thinMaterial)
+                        .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .overlay(RoundedRectangle(cornerRadius: 20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
                                 .stroke(Color.white.opacity(0.12))
-                                                )
-                                                .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
-                                                .padding(.horizontal)
+                        )
+                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
+                        .padding(.horizontal)
                 }
             }
         }
@@ -254,7 +199,6 @@ struct HomeScreen: View {
 }
 
 // MARK: - Product Card
-
 struct ProductPost: View {
     let item: Item
 
@@ -265,7 +209,7 @@ struct ProductPost: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
 
-            // Seller row
+            // SELLER ROW
             NavigationLink(destination: PublicProfileView(userID: item.sellerID)) {
                 HStack {
                     ZStack {
@@ -275,8 +219,6 @@ struct ProductPost: View {
 
                         if let sellerImageURL = sellerImageURL,
                            let url = URL(string: sellerImageURL) {
-
-                           
                             GeometryReader { geo in
                                 SDWebImageAsync(
                                     url: url,
@@ -286,7 +228,6 @@ struct ProductPost: View {
                                 .clipShape(Circle())
                             }
                             .frame(width: 32, height: 32)
-
                         } else {
                             Image(systemName: "person.fill")
                                 .resizable()
@@ -295,7 +236,6 @@ struct ProductPost: View {
                                 .foregroundColor(.blue)
                         }
                     }
-                    .frame(width: 32, height: 32) // <- ensures stable container
                     .onAppear {
                         authManager.fetchSeller(id: item.sellerID) { url in
                             sellerImageURL = url
@@ -316,8 +256,7 @@ struct ProductPost: View {
                 .padding(.horizontal)
             }
 
-
-            // Product image
+            // PRODUCT IMAGE
             NavigationLink(destination: {
                 if item.itemType == .forTrade {
                     TradeItemCard(item: item, onPropose: {})
@@ -350,7 +289,7 @@ struct ProductPost: View {
                 )
             }
 
-            // Price / trade badge
+            // PRICE / TAGS
             HStack {
                 if item.itemType == .forSale {
                     HStack(spacing: 6) {
@@ -403,32 +342,32 @@ struct ProductPost: View {
             .padding(.horizontal)
 
             Divider()
-        }.padding(18)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(.ultraThinMaterial)
-                    .background(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Color.white.opacity(0.25))
-                    )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(
-                        LinearGradient(
-                            colors: [Color.purple, Color.blue],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1.2
-                    )
-            )
-            .shadow(color: Color.blue.opacity(0.4), radius: 20)
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.ultraThinMaterial)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.white.opacity(0.25))
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.purple, Color.blue],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.2
+                )
+        )
+        .shadow(color: Color.blue.opacity(0.4), radius: 20)
     }
 }
 
 // MARK: - Category Circle
-
 struct CategoryCircle: View {
     let icon: String
     let name: String
@@ -440,9 +379,9 @@ struct CategoryCircle: View {
     }
 
     var body: some View {
-        Button(action: {
+        Button {
             selectedCategory = category == .all ? nil : category
-        }) {
+        } label: {
             VStack(spacing: 8) {
                 Circle()
                     .fill(isSelected ? Color.blue : Color.blue.opacity(0.2))
@@ -461,7 +400,8 @@ struct CategoryCircle: View {
     }
 }
 
-// MARK: - Notifications
+// MARK: - Notifications Sheet + Views
+// (unchanged because they were already correct)
 
 struct NotificationsView: View {
     @Environment(\.dismiss) var dismiss
@@ -494,7 +434,6 @@ struct NotificationsView: View {
                                     selectedNotification = notification
                                     showDetailSheet = true
                                     
-                                    // Mark as read when tapped
                                     if !notification.isRead, let id = notification.id {
                                         notificationService.markAsRead(id)
                                     }
@@ -538,7 +477,6 @@ struct NotificationRow: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Icon based on type
             Image(systemName: iconForType(notification.type))
                 .font(.title3)
                 .foregroundColor(colorForType(notification.type))
@@ -571,46 +509,37 @@ struct NotificationRow: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     private func iconForType(_ type: NotificationType) -> String {
         switch type {
-        case .tradeProposal:
-            return "arrow.triangle.swap"
-        case .tradeAccepted:
-            return "checkmark.circle.fill"
-        case .tradeRejected:
-            return "xmark.circle.fill"
-        case .message:
-            return "message.fill"
-        case .other:
-            return "bell.fill"
+        case .tradeProposal: return "arrow.triangle.swap"
+        case .tradeAccepted: return "checkmark.circle.fill"
+        case .tradeRejected: return "xmark.circle.fill"
+        case .message:       return "message.fill"
+        case .other:         return "bell.fill"
         }
     }
     
     private func colorForType(_ type: NotificationType) -> Color {
         switch type {
-        case .tradeProposal:
-            return .blue
-        case .tradeAccepted:
-            return .green
-        case .tradeRejected:
-            return .red
-        case .message:
-            return .purple
-        case .other:
-            return .gray
+        case .tradeProposal: return .blue
+        case .tradeAccepted: return .green
+        case .tradeRejected: return .red
+        case .message:       return .purple
+        case .other:         return .gray
         }
     }
 }
 
-// MARK: - Preview
 
+// MARK: - Preview
 struct HomeScreen_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
             HomeScreen()
                 .environmentObject(ProductManager.shared)
+                .environmentObject(NotificationService.shared)
+                .environmentObject(FirebaseCartManager.shared)
         }
     }
 }
-

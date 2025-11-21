@@ -108,6 +108,7 @@ struct DetailView: View {
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
         DetailView(item: SampleData.items[0])
-            .environmentObject(FirebaseCartManager())
+            .environmentObject(FirebaseCartManager.shared)
+
     }
 }

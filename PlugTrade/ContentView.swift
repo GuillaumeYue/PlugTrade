@@ -1,17 +1,14 @@
-//
-//  ContentView.swift
-//  PlugTrade
-//
-//  Created by Shaquille O Neil on 2025-10-24.
-//
-
 import FirebaseAuth
 import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var authManager: AuthService
-    @State private var isLoaded = false
     @EnvironmentObject var productManager: ProductManager
+    @EnvironmentObject var notificationService: NotificationService
+    @EnvironmentObject var cartManager: FirebaseCartManager  
+
+    @State private var isLoaded = false
+
     var body: some View {
         NavigationView {
             Group {
@@ -20,33 +17,45 @@ struct ContentView: View {
                         .onAppear {
                             authManager.fetchUser { _ in
                                 isLoaded = true
-                                //preheat listening
+
                                 if Auth.auth().currentUser != nil {
                                     productManager.fetchUserProducts()
+                                    notificationService.startListening()
+
+                                    
+                                    FirebaseCartManager.shared.startListening()
                                 }
                             }
                         }
-                        .environmentObject(NotificationService.shared)
+
                 } else if authManager.currentUser == nil {
                     AuthGate()
+
                 } else {
                     MainTabView()
-                        // another at main page load listening
                         .onAppear {
                             productManager.fetchUserProducts()
-                            NotificationService.shared.startListening()
+                            notificationService.startListening()
+
+                         
+                            FirebaseCartManager.shared.startListening()
                         }
                 }
             }
         }
-        // Log in/ out change listening
         .onChange(of: authManager.currentUser?.id) { _ in
             if Auth.auth().currentUser != nil {
                 productManager.fetchUserProducts()
-                NotificationService.shared.startListening()
+                notificationService.startListening()
+
+           
+                FirebaseCartManager.shared.startListening()
+
             } else {
                 productManager.stopUserProductsListener()
-                NotificationService.shared.stopListening()
+                notificationService.stopListening()
+
+               
             }
         }
     }
@@ -54,5 +63,8 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-
+        .environmentObject(AuthService.shared)
+        .environmentObject(ProductManager.shared)
+        .environmentObject(NotificationService.shared)
+        .environmentObject(FirebaseCartManager.shared)
 }

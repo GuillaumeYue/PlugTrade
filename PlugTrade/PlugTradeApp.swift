@@ -24,7 +24,7 @@ struct PlugTradeApp: App {
     // CREATE THE GLOBALS HERE
     @StateObject private var authService = AuthService.shared
     @StateObject private var productManager = ProductManager.shared
-    @StateObject private var firebaseCart = FirebaseCartManager()
+    @StateObject private var firebaseCart = FirebaseCartManager.shared
     @StateObject private var notificationService = NotificationService.shared
 
     var body: some Scene {

@@ -3,9 +3,11 @@ import SwiftUI
 struct TradeScreen: View {
     @EnvironmentObject private var productManager: ProductManager
     @EnvironmentObject private var authService: AuthService
-
+    @EnvironmentObject var notificationService: NotificationService
+    @EnvironmentObject var cartManager: FirebaseCartManager
     @State private var searchText: String = ""
     @State private var selectedCategory: Category = .all
+    @State private var showNotifications = false
 
     private struct ProposalWrapper: Identifiable {
         let id = UUID()
@@ -48,6 +50,85 @@ struct TradeScreen: View {
                 }
                 .navigationTitle("Trade")
                 .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        HStack(spacing: 16) {
+
+                            // NOTIFICATIONS — merged + unread badge
+                            Button(action: { showNotifications = true }) {
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "bell.fill")
+                                        .foregroundColor(.blue)
+
+                                    if notificationService.unreadCount > 0 {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 16, height: 16)
+                                            Text("\(notificationService.unreadCount)")
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                        }
+                                        .offset(x: 8, y: -8)
+                                    }
+                                }
+                            }
+
+                            // CART — merged full version
+                            NavigationLink(destination: CartView()) {
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "cart.fill")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 24, height: 24)
+                                        .foregroundStyle(Color.blue)
+
+                                    if cartManager.cartItems.count > 0 {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 16, height: 16)
+                                            Text("\(cartManager.cartItems.count)")
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                        }
+                                        .offset(x: 8, y: -8)
+                                    }
+                                }
+                            }
+
+                            // PROFILE IMAGE
+                            NavigationLink(destination: ProfileScreen()) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.3))
+                                        .frame(width: 32, height: 32)
+
+                                    if let urlString = authService.currentUser?.profilePictureURL,
+                                       let url = URL(string: urlString) {
+                                        SDWebImageAsync(
+                                            url: url,
+                                            placeholder: Image(systemName: "person.fill")
+                                        )
+                                        .frame(width: 32, height: 32)
+                                        .clipShape(Circle())
+
+                                    } else {
+                                        Image(systemName: "person.fill")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .sheet(isPresented: $showNotifications) {
+                    NotificationsView()
+                        .environmentObject(notificationService)
+                }
                 
                 
             }
@@ -152,6 +233,7 @@ struct TradeScreen: View {
     }
 }
 
+
 // iOS16 可选 detents helper
 private extension View {
     @ViewBuilder
@@ -179,10 +261,14 @@ struct TradeScreen_Previews: PreviewProvider {
     static var previews: some View {
         let pm = ProductManager()
         pm.items = SampleData.items
-        let auth = AuthService()
+        
         return TradeScreen()
-            .environmentObject(pm)
-            .environmentObject(auth)
+            .environmentObject(ProductManager.shared)
+            .environmentObject(AuthService.shared)
+            .environmentObject(NotificationService.shared)
+            .environmentObject(FirebaseCartManager.shared)
+
+
     }
 }
 #endif

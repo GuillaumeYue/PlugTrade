@@ -47,8 +47,7 @@ struct MainTabView: View {
             
            
         }
-        .environmentObject(cartManager)
-        .environmentObject(productManager)
+    
     }
 }
 
