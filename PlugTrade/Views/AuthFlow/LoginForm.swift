@@ -14,66 +14,107 @@ struct LoginForm: View {
     @StateObject var authManager = AuthService.shared
     
     var body: some View {
-        VStack{
-            Text("PlugTrade")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
+        ZStack{
+            Image("background3")
+                .resizable()
+                .scaledToFill()
+                .edgesIgnoringSafeArea(.all)
             
-            Form{
-                Section("Login"){
-                    TextField("Email", text: $email)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .autocapitalization(.none)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
-                        .keyboardType(.emailAddress)
-                    
-                    
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
+            VStack{
+                Spacer()
+                    .frame(height: 40)
                 
-                if let error = error {
-                    Text(error)
-                        .foregroundColor(.red)
-                }
+                Image("back3")
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(Circle())
+                    .frame(width: 300, height: 300)
                 
-                
-                Button("Login"){
-                    
-                    guard Validators.isValidEmail(email) else {
-                        self.error = "Invalid email format"
-                        return
+                Form{
+                    Section(header:
+                                HStack {
+                        Spacer()
+                                    Image(systemName: "person.fill")
+                                    Text("LOGIN")
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                        Spacer()
+                                }){
+                        TextField("Email", text: $email)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .autocapitalization(.none)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
+                            .keyboardType(.emailAddress)
+                        
+                        
+                        SecureField("Password", text: $password)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                     
-                    guard Validators.isValidPassword(password) else {
-                        self.error = "Password must be at least 8 characters long"
-                        return
+                    
+                    if let error = error {
+                        Text(error)
+                            .foregroundColor(.red)
                     }
                     
-                    authManager.login(email: email, password: password){
-                        result in
-                        switch result {
-                        case .success:
-                            self.error = nil
-                        case .failure(let failure):
-                            self.error = failure.localizedDescription
+                    
+                    Section{
+                        Button("Login"){
+                            
+                            guard Validators.isValidEmail(email) else {
+                                self.error = "Invalid email format"
+                                return
+                            }
+                            
+                            guard Validators.isValidPassword(password) else {
+                                self.error = "Password must be at least 8 characters long"
+                                return
+                            }
+                            
+                            authManager.login(email: email, password: password){
+                                result in
+                                switch result {
+                                case .success:
+                                    self.error = nil
+                                case .failure(let failure):
+                                    self.error = failure.localizedDescription
+                                }
+                            }
+                            
                         }
+                        .padding(.horizontal)
+                        .disabled(email.isEmpty || password.isEmpty)
+                        .font(.headline)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .listRowBackground(Color.clear)
+                            
                     }
                     
-                }
-                .padding(.horizontal)
-                .disabled(email.isEmpty || password.isEmpty)
-                
+                        
                     
+                    
+                }
+                .frame(width: 350, height: 320)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .scrollContentBackground(.hidden)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color.white.opacity(0.8), lineWidth: 1)
+                        )
                 
+                Spacer()
                 
             }
-            
-            
+            .padding(.horizontal)
         }
-        .padding(.horizontal)
+       
         
       
         

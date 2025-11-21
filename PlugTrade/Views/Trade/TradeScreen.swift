@@ -15,14 +15,43 @@ struct TradeScreen: View {
 
     init() {}
     var body: some View {
+        let circleBackgroundLayout: [(Color, CGFloat, CGFloat, CGFloat)] = [
+            (.green.opacity(0.55), 260, -210, -490),
+            (.purple.opacity(0.20), 160,  140, -280),
+            (.blue.opacity(0.18),   120, -140, -120),
+            (.red.opacity(0.15),   100, -180,  180),
+            (.green.opacity(0.18),  150,  160,  280),
+            (.orange.opacity(0.15), 130, -100,  300)
+        ]
         NavigationView {
-            VStack(spacing: 0) {
-                searchBar
-                categoryChips
-                contentList
+            ZStack{
+                LinearGradient(
+                       colors: [Color.white, Color.gray.opacity(0.05)],
+                       startPoint: .topLeading,
+                       endPoint: .bottomTrailing
+                   )
+                   .ignoresSafeArea()
+
+                  
+                   ForEach(0..<circleBackgroundLayout.count, id: \.self) { i in
+                       let circle = circleBackgroundLayout[i]
+                       Circle()
+                           .fill(circle.0)
+                           .frame(width: circle.1, height: circle.1)
+                           .offset(x: circle.2, y: circle.3)
+                   }
+                
+                VStack(spacing: 0) {
+                    searchBar
+                    categoryChips
+                    contentList
+                }
+                .navigationTitle("Trade")
+                .navigationBarTitleDisplayMode(.large)
+                
+                
             }
-            .navigationTitle("Trade")
-            .navigationBarTitleDisplayMode(.large)
+            
         }
         .sheet(item: $sheetWrapper) { wrapper in
             TradeProposalSheet(
@@ -55,9 +84,15 @@ struct TradeScreen: View {
             }
         }
         .padding(12)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
         .padding(.horizontal)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 10, y: 4)
+        .frame(width: 390)
         .padding(.top, authService.currentUser == nil ? 8 : 16)
     }
 

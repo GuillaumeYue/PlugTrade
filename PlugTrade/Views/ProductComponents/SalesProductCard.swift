@@ -7,39 +7,18 @@
 
 import SwiftUI
 
-struct TradeItemCard: View {
+struct SalesProductCard: View {
     let item: Item
-    var onPropose: () -> Void
 
     @State private var sellerAvatarURL: String? = nil
     @EnvironmentObject private var authService: AuthService
-    @State private var sendTrade = false
     
-
-    init(item: Item, onPropose: @escaping () -> Void) {
-        self.item = item
-        self.onPropose = onPropose
-    }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            AsyncImage(url: URL(string: item.imageURL)) { phase in
-                switch phase {
-                case .empty:
-                    ZStack {
-                        Rectangle().fill(Color(.secondarySystemBackground))
-                        ProgressView()
-                    }
-                case .success(let image):
-                    image.resizable().scaledToFill()
-                case .failure:
-                    ZStack {
-                        Rectangle().fill(Color(.secondarySystemBackground))
-                        Image(systemName: "photo")
-                    }
-                @unknown default:
-                    EmptyView()
-                }
-            }
+            SDWebImageAsync(
+                url: URL(string: item.imageURL),
+                placeholder: Image(systemName: "photo")
+            )
             .frame(height: 180)
             .clipped()
             .cornerRadius(16)
@@ -62,25 +41,28 @@ struct TradeItemCard: View {
                 }
                 Spacer()
                 HStack(spacing: 6) {
-                    Chip(text: "For Trade")
+                    Chip(text: "For Sale")
                     Chip(text: item.category.rawValue.capitalized)
                 }
             }
-//            Button(action: onPropose) {
-//                Text("Send Request")
-//                    .frame(maxWidth: .infinity)
-//                    .padding(.vertical, 12)
-//            }
-//            .buttonStyle(.borderedProminent)
-//            .cornerRadius(12)
-            Button("Send Request"){
-                sendTrade = true
+            
+            HStack(spacing: 6) {
+                Image(systemName: "cart.badge.plus.fill")
+                    .font(.title3)
+                    .foregroundColor(.white)
+
+                Text("$\(item.price ?? 0.0, specifier: "%.2f")")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
             }
-            .buttonStyle(.borderedProminent)
-            .cornerRadius(12)
-            .sheet(isPresented: $sendTrade){
-                TradeProposalSheet(targetItem: item, isPresented: $sendTrade)
-            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.blue.gradient)
+            )
+            
         }
         .padding(18)
         .background(
@@ -105,29 +87,23 @@ struct TradeItemCard: View {
         .shadow(color: Color.blue.opacity(0.4), radius: 20)
         .onAppear {
             
-            // check the curren user
-//            if let currentUser = authService.currentUser {
-//                authService.fetchSeller(id: currentUser.id ?? item.sellerID) { url in
-//                    sellerAvatarURL = url
-//                }
-//            }else {
                 authService.fetchSeller(id: item.sellerID) { url in
                     sellerAvatarURL = url
                 }
 //            }
-//            
+//
             
         }
     }
 }
 
 #if DEBUG
-    struct TradeItemCard_Previews: PreviewProvider {
+    struct SalesProductCard_Previews: PreviewProvider {
         static var previews: some View {
             let i =
-                SampleData.items.first { $0.itemType == .forTrade }
+                SampleData.items.first { $0.itemType == .forSale }
                 ?? SampleData.items[0]
-            return TradeItemCard(item: i, onPropose: {})
+            return SalesProductCard(item: i)
                 .environmentObject(AuthService.shared)
                 .padding()
                 .previewLayout(.sizeThatFits)
@@ -135,3 +111,4 @@ struct TradeItemCard: View {
         }
     }
 #endif
+

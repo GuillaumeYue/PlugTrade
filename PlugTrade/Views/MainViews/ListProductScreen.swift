@@ -103,6 +103,13 @@ struct ListProductScreen: View {
                             }
                         }
                     }
+                    .font(.headline)
+                    .frame(width: 350, height: 50 )
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .listRowBackground(Color.clear)
                     .disabled(
                         // MARK: adjusted by S.Neil
                         selectedType == .forSale
@@ -110,7 +117,15 @@ struct ListProductScreen: View {
                        
                         : (isPosting || title.isEmpty ||  location.isEmpty || quantity.isEmpty))
                     // MARK: end of adjustment
-                }
+                }.frame(width: 350, height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .scrollContentBackground(.hidden)
+                            .background(.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 25))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.white.opacity(0.8), lineWidth: 1)
+                            )
             }
             .navigationTitle("Post New Item")
             .alert("Post Status", isPresented: $showingAlert) {

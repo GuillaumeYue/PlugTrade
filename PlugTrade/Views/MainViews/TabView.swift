@@ -19,10 +19,15 @@ struct MainTabView: View {
                     Image(systemName: "house.fill")
                     Text("Home")
                 }
-            SearchScreen()
+//            SearchScreen()
+//                .tabItem {
+//                    Image(systemName: "magnifyingglass")
+//                    Text("Search")
+//                }
+            SalesItemScreen()
                 .tabItem {
-                    Image(systemName: "magnifyingglass")
-                    Text("Search")
+                    Image(systemName: "dollarsign")
+                    Text("Sales")
                 }
             ListProductScreen()
                 .tabItem {
