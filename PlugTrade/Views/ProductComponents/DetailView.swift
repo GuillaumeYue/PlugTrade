@@ -15,6 +15,7 @@ struct DetailView: View {
     let item: Item
     @State private var isFavorite = false
     @EnvironmentObject var cartManager: FirebaseCartManager
+    @State private var quantity = 1
     
     var body: some View {
         ScrollView {
@@ -79,11 +80,19 @@ struct DetailView: View {
                     Toggle("Save to favorites", isOn: $isFavorite)
                         .tint(.blue)
                     
+                    HStack{
+                        Text("Quantity:")
+                        QuantityPicker(quantity: $quantity,
+                        maxQuantity: item.quantity)
+                    }
+                    
+                   
+                    
                     Button(action: {
                         if cartManager.isInCart(item: item) {
                             cartManager.removeFromCart(item: item)
                         } else {
-                            cartManager.addToCart(item: item)
+                            cartManager.addToCart(item: item, quantity: quantity)
                         }
                     }) {
                         HStack {
@@ -103,6 +112,38 @@ struct DetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
     }
+}
+
+struct QuantityPicker: View {
+    @Binding var quantity: Int
+    let maxQuantity: Int
+    
+    var body: some View {
+        HStack {
+            Button(action: {
+                if self.quantity > 1 {
+                    self.quantity -= 1
+                }
+            }) {
+                Image(systemName: "minus.circle.fill")
+                    .foregroundStyle(Color.blue)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Text("\(quantity)")
+                .font(.title2)
+            
+            Button(action: {
+                if self.quantity < self.maxQuantity {
+                    self.quantity += 1
+                }
+            }) {
+                Image(systemName: "plus.circle.fill")
+            }
+        }.padding(.vertical)
+    }
+    
+    
 }
 
 struct DetailView_Previews: PreviewProvider {

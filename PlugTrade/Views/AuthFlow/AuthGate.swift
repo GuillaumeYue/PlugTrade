@@ -12,20 +12,28 @@ struct AuthGate: View {
     
     
     var body: some View {
-        VStack {
-            Picker("", selection: $showLogin) {
-                Text("Login").tag(true)
-                Text("Signup").tag(false)
-            }.pickerStyle(.segmented)
-                .padding()
+        ZStack{
+            Image("background3")
+                .resizable()
+                .scaledToFill()
+                .edgesIgnoringSafeArea(.all)
             
-            if showLogin {
-                LoginForm()
-            }else{
-                RegisterForm()
+            VStack {
+                Picker("", selection: $showLogin) {
+                    Text("Login").tag(true)
+                    Text("Signup").tag(false)
+                }.pickerStyle(.segmented)
+                    .padding(.top, 60)
+                
+                if showLogin {
+                    LoginForm()
+                }else{
+                    RegisterForm()
+                }
+                
             }
-            
         }
+       
     }
 }
 

@@ -14,15 +14,10 @@ struct LoginForm: View {
     @StateObject var authManager = AuthService.shared
     
     var body: some View {
-        ZStack{
-            Image("background3")
-                .resizable()
-                .scaledToFill()
-                .edgesIgnoringSafeArea(.all)
             
             VStack{
                 Spacer()
-                    .frame(height: 40)
+                    .frame(height: 10)
                 
                 Image("back3")
                     .resizable()
@@ -59,47 +54,11 @@ struct LoginForm: View {
                     }
                     
                     
-                    Section{
-                        Button("Login"){
-                            
-                            guard Validators.isValidEmail(email) else {
-                                self.error = "Invalid email format"
-                                return
-                            }
-                            
-                            guard Validators.isValidPassword(password) else {
-                                self.error = "Password must be at least 8 characters long"
-                                return
-                            }
-                            
-                            authManager.login(email: email, password: password){
-                                result in
-                                switch result {
-                                case .success:
-                                    self.error = nil
-                                case .failure(let failure):
-                                    self.error = failure.localizedDescription
-                                }
-                            }
-                            
-                        }
-                        .padding(.horizontal)
-                        .disabled(email.isEmpty || password.isEmpty)
-                        .font(.headline)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                            .listRowBackground(Color.clear)
-                            
-                    }
-                    
                         
                     
                     
                 }
-                .frame(width: 350, height: 320)
+                .frame(width: 350, height: 280)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
                 .scrollContentBackground(.hidden)
                         .background(.ultraThinMaterial)
@@ -109,11 +68,45 @@ struct LoginForm: View {
                                 .stroke(Color.white.opacity(0.8), lineWidth: 1)
                         )
                 
+                
+                Button("Login"){
+                    
+                    guard Validators.isValidEmail(email) else {
+                        self.error = "Invalid email format"
+                        return
+                    }
+                    
+                    guard Validators.isValidPassword(password) else {
+                        self.error = "Password must be at least 8 characters long"
+                        return
+                    }
+                    
+                    authManager.login(email: email, password: password){
+                        result in
+                        switch result {
+                        case .success:
+                            self.error = nil
+                        case .failure(let failure):
+                            self.error = failure.localizedDescription
+                        }
+                    }
+                    
+                }
+                .padding(.horizontal)
+                .disabled(email.isEmpty || password.isEmpty)
+                .font(.headline)
+                    .padding()
+                    .frame(width: 200)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .listRowBackground(Color.clear)
+                
                 Spacer()
                 
             }
             .padding(.horizontal)
-        }
+        
        
         
       
@@ -123,4 +116,5 @@ struct LoginForm: View {
 
 #Preview {
     LoginForm()
+        
 }

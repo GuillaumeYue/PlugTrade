@@ -208,164 +208,198 @@ struct ProductPost: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-
-            // SELLER ROW
-            NavigationLink(destination: PublicProfileView(userID: item.sellerID)) {
-                HStack {
-                    ZStack {
-                        Circle()
-                            .fill(Color.blue.opacity(0.3))
-                            .frame(width: 32, height: 32)
-
-                        if let sellerImageURL = sellerImageURL,
-                           let url = URL(string: sellerImageURL) {
-                            GeometryReader { geo in
-                                SDWebImageAsync(
-                                    url: url,
-                                    placeholder: Image(systemName: "person.fill")
-                                )
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .clipShape(Circle())
-                            }
-                            .frame(width: 32, height: 32)
-                        } else {
-                            Image(systemName: "person.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    .onAppear {
-                        authManager.fetchSeller(id: item.sellerID) { url in
-                            sellerImageURL = url
-                        }
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.sellerName)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                        Text(item.location)
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-
-                    Spacer()
-                }
-                .padding(.horizontal)
-            }
-
-            // PRODUCT IMAGE
-            NavigationLink(destination: {
-                if item.itemType == .forTrade {
-                    TradeItemCard(item: item, onPropose: {})
-                } else {
-                    DetailView(item: item)
-                }
-            }) {
-                SDWebImageAsync(
-                    url: URL(string: item.imageURL),
-                    placeholder: Image(systemName: "photo")
-                )
-                .frame(maxWidth: 420)
-                .frame(height: 250)
-                .clipped()
-                .contentShape(Rectangle())
-                .overlay(
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Text(item.title)
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(8)
-                                .background(Color.black.opacity(0.6))
-                                .cornerRadius(8)
-                            Spacer()
-                        }
-                        .padding()
-                    }
-                )
-            }
-
-            // PRICE / TAGS
-            HStack {
-                if item.itemType == .forSale {
-                    HStack(spacing: 6) {
-                        Image(systemName: "cart.badge.plus.fill")
-                            .font(.title3)
-                            .foregroundColor(.white)
-
-                        Text("$\(item.price ?? 0.0, specifier: "%.2f")")
-                            .font(.subheadline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.blue.gradient)
-                    )
-                } else {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.2.circlepath")
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .rotationEffect(.degrees(rotate ? 360 : 0))
-                            .animation(.linear(duration: 2).repeatForever(autoreverses: false), value: rotate)
-                            .onAppear { rotate = true }
-
-                        Text("For Trade")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.green.gradient)
-                    )
-                }
-
-                Spacer()
-
-                HStack(spacing: 16) {
-                    Image(systemName: "heart")
-                    Image(systemName: "message")
-                    Image(systemName: "cart")
-                }
-                .font(.title3)
-            }
-            .padding(.horizontal)
-
+            sellerRow
+            productImageSection
+            priceAndTags
             Divider()
         }
         .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .background(
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(Color.white.opacity(0.25))
-                )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(
-                    LinearGradient(
-                        colors: [Color.purple, Color.blue],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1.2
-                )
-        )
+        .background(cardBackground)
+        .overlay(cardBorder)
         .shadow(color: Color.blue.opacity(0.4), radius: 20)
     }
+    
+    private var sellerRow: some View {
+        NavigationLink(destination: PublicProfileView(userID: item.sellerID)) {
+            HStack {
+                sellerAvatar
+                sellerInfo
+                Spacer()
+            }
+            .padding(.horizontal)
+        }
+    }
+
+    private var sellerAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(Color.blue.opacity(0.3))
+                .frame(width: 32, height: 32)
+
+            if let sellerImageURL = sellerImageURL,
+               let url = URL(string: sellerImageURL) {
+
+                GeometryReader { geo in
+                    SDWebImageAsync(
+                        url: url,
+                        placeholder: Image(systemName: "person.fill")
+                    )
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipShape(Circle())
+                }
+                .frame(width: 32, height: 32)
+
+            } else {
+                Image(systemName: "person.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(.blue)
+            }
+        }
+        .onAppear {
+            authManager.fetchSeller(id: item.sellerID) { url in
+                sellerImageURL = url
+            }
+        }
+    }
+
+    private var sellerInfo: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(item.sellerName)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            Text(item.location)
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+    }
+
+    private var productImageSection: some View {
+        NavigationLink(destination: productDestination) {
+            SDWebImageAsync(
+                url: URL(string: item.imageURL),
+                placeholder: Image(systemName: "photo")
+            )
+            .frame(maxWidth: 420)
+            .frame(height: 250)
+            .clipped()
+            .overlay(productOverlay)
+        }
+    }
+
+    @ViewBuilder
+    private var productDestination: some View {
+        if item.itemType == .forTrade {
+            TradeDetailView(item: item)
+        } else {
+            DetailView(item: item)
+        }
+    }
+
+    private var productOverlay: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Text(item.title)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color.black.opacity(0.6))
+                    .cornerRadius(8)
+                Spacer()
+            }
+            .padding()
+        }
+    }
+
+    private var priceAndTags: some View {
+        HStack {
+            priceOrTradeBadge
+            Spacer()
+            postActions
+        }
+        .padding(.horizontal)
+    }
+
+    @ViewBuilder
+    private var priceOrTradeBadge: some View {
+        if item.itemType == .forSale {
+            HStack(spacing: 6) {
+                Image(systemName: "cart.badge.plus.fill")
+                    .font(.title3)
+                    .foregroundColor(.white)
+
+                Text("$\(item.price ?? 0.0, specifier: "%.2f")")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.blue.gradient)
+            )
+
+        } else {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.2.circlepath")
+                    .font(.title3)
+                    .foregroundColor(.white)
+                    .rotationEffect(.degrees(rotate ? 360 : 0))
+                    .animation(.linear(duration: 2).repeatForever(autoreverses: false), value: rotate)
+                    .onAppear { rotate = true }
+
+                Text("For Trade")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.green.gradient)
+            )
+        }
+    }
+
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 24)
+            .fill(.ultraThinMaterial)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color.white.opacity(0.25))
+            )
+    }
 }
+
+
+
+private var cardBorder: some View {
+    RoundedRectangle(cornerRadius: 24)
+        .stroke(
+            LinearGradient(
+                colors: [Color.purple, Color.blue],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            lineWidth: 1.2
+        )
+}
+
+private var postActions: some View {
+    HStack(spacing: 16) {
+        Image(systemName: "heart")
+        Image(systemName: "message")
+        Image(systemName: "cart")
+    }
+    .font(.title3)
+}
+
+
 
 // MARK: - Category Circle
 struct CategoryCircle: View {
@@ -517,6 +551,7 @@ struct NotificationRow: View {
         case .tradeRejected: return "xmark.circle.fill"
         case .message:       return "message.fill"
         case .other:         return "bell.fill"
+        case .purchase:      return "cart.fill"
         }
     }
     
@@ -527,6 +562,7 @@ struct NotificationRow: View {
         case .tradeRejected: return .red
         case .message:       return .purple
         case .other:         return .gray
+        case .purchase:      return .orange
         }
     }
 }

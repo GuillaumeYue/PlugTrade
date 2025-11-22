@@ -14,6 +14,7 @@ enum NotificationType: String, Codable {
     case tradeRejected = "trade_rejected"
     case message = "message"
     case other = "other"
+    case purchase = "purchase"
 }
 
 struct AppNotification: Identifiable, Codable {

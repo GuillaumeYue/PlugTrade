@@ -15,16 +15,10 @@ struct RegisterForm: View {
     @StateObject private var authManager = AuthService.shared
     
     var body: some View {
-        
-        ZStack{
-            Image("background3")
-                .resizable()
-                .scaledToFill()
-                .edgesIgnoringSafeArea(.all)
             
             VStack {
                 Spacer()
-                    .frame(height: 60)
+                    .frame(height: 10)
                 Image("back3")
                     .resizable()
                     .scaledToFit()
@@ -138,7 +132,7 @@ struct RegisterForm: View {
             .alert("Registration Successful!", isPresented: $showSuccessAlert) {
                 Button("OK", role: .cancel) { }
             }
-        }
+        
         
         
         
