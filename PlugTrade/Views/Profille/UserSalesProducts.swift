@@ -10,6 +10,7 @@ import SwiftUI
 struct UserSalesProducts: View {
     
     @EnvironmentObject var productManager: ProductManager
+    @EnvironmentObject var favoritesManager: FirebaseFavoritesManager
     let item: Item
     @State private var isExpanded = false
     
@@ -77,12 +78,27 @@ struct UserSalesProducts: View {
                     
                     Spacer()
                     
-                    HStack(spacing: 16) {
-                        Image(systemName: "heart")
-                        Image(systemName: "message")
-                        Image(systemName: "cart")
+                    
+                    
+                    
+                    Button(action: {
+                        favoritesManager.toggleFavorite(item: item)
+                    }) {
+                        VStack {
+                            Image(systemName: favoritesManager.isFavorite(item: item) ? "heart.fill" : "heart")
+                                .font(.system(size: 28))
+                                .foregroundColor(favoritesManager.isFavorite(item: item) ? .red : .gray)
+
+                            Text(favoritesManager.isFavorite(item: item) ? "Saved" : "Save")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .frame(width: 80, height: 60)
+                        .contentShape(Rectangle())   // better tap area
                     }
-                    .font(.title3)
+                    .buttonStyle(.plain)
+                    
+                    
                 }
                 .padding(.horizontal)
                 
@@ -97,4 +113,5 @@ struct UserSalesProducts: View {
 #Preview {
     UserSalesProducts(item: SampleData.items.first!)
         .environmentObject(ProductManager.shared)
+        .environmentObject(FirebaseFavoritesManager.shared)
 }

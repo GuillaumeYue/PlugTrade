@@ -18,6 +18,7 @@ struct ListProductScreen: View {
     @State private var selectedImage: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var quantity = ""
+    @State private var lookingfor = ""
     @State private var selectedType: ItemTypeEnum = .forSale
     @State private var showingAlert = false
     @State private var alertMessage = ""
@@ -67,6 +68,21 @@ struct ListProductScreen: View {
                     if selectedType == .forSale {
                         TextField("Price", text: $price)
                             .keyboardType(.decimalPad)
+                    }
+                    if selectedType == .forTrade {
+                        TextField("Looking For (comma separated)", text: $lookingfor)
+                            .onChange(of: lookingfor) { newValue in
+                                let parts = newValue.split(separator: ",").map{ $0.trimmingCharacters(in: .whitespaces)}
+                                    .filter { !$0.isEmpty }
+                                
+                          if parts.count > 3 {
+                              let limit = parts.prefix(3).joined(separator: ", ")
+                              lookingfor = limit
+                              alertMessage = "Please enter no more than 3 items"
+                              showingAlert = true
+                                    
+                                }
+                            }
                     }
                     // MARK: end of adjustment
                     
@@ -149,6 +165,21 @@ struct ListProductScreen: View {
     
     private func postItem() {
         
+        
+        // Turn the text into an array
+        var lookingForArray = lookingfor
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        if lookingForArray.count > 3 {
+            lookingForArray = Array(lookingForArray.prefix(3))
+            alertMessage = "You can only add up to 3 items in 'Looking For'. Extra items were removed."
+            showingAlert = true
+        }
+
+        
+        
         if selectedType == .forSale, price.isEmpty {
             alertMessage = "Please enter a valid Price"
             showingAlert = true
@@ -175,6 +206,7 @@ struct ListProductScreen: View {
             category: selectedCategory,
             image: imageData,
             quantity: quantityValue,
+            lookingFor: lookingForArray,
             itemType: selectedType
         ) { result in
             isPosting = false

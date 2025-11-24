@@ -15,7 +15,6 @@ import SwiftUI
 class AuthService: ObservableObject {
     
     static let shared = AuthService()
-    
     @Published var currentUser: appUser?
     @Published var isLoading = false
     @Published var profilePictureURL: String?

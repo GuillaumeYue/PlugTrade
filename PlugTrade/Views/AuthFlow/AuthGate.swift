@@ -32,6 +32,8 @@ struct AuthGate: View {
                 }
                 
             }
+            
+
         }
        
     }

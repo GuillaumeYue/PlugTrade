@@ -191,13 +191,12 @@ struct HomeScreen: View {
                
                 ForEach(filteredItems.prefix(10)) { item in
                     ProductPost(item: item)
-                        .background(.ultraThinMaterial)
+                        .background(Color.white.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
                                 .stroke(Color.white.opacity(0.12))
                         )
-                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
                         .padding(.horizontal)
                 }
             }
@@ -237,6 +236,24 @@ struct ProductPost: View {
           
             priceOrTradeBadge
             
+            if item.itemType == .forTrade {
+                DisclosureGroup {
+                    let wants = item.lookingfor ?? []
+                    if wants.isEmpty {
+                        Text("No specific needs listed")
+                    } else {
+                        ForEach(wants, id: \.self) { want in
+                            Text(want).foregroundColor(.secondary)
+                        }
+                    }
+                } label: {
+                        Text("Looking For")
+                    
+                }
+            }
+            
+           
+            
  
         }
         .padding(12)
@@ -268,15 +285,13 @@ struct ProductPost: View {
             if let sellerImageURL = sellerImageURL,
                let url = URL(string: sellerImageURL) {
 
-                GeometryReader { geo in
-                    SDWebImageAsync(
-                        url: url,
-                        placeholder: Image(systemName: "person.fill")
-                    )
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .clipShape(Circle())
-                }
+                SDWebImageAsync(
+                    url: url,
+                    placeholder: Image(systemName: "person.fill")
+                )
+                .scaledToFill()
                 .frame(width: 32, height: 32)
+                .clipShape(Circle())
 
             } else {
                 Image(systemName: "person.fill")
@@ -287,11 +302,14 @@ struct ProductPost: View {
             }
         }
         .onAppear {
-            authManager.fetchSeller(id: item.sellerID) { url in
-                sellerImageURL = url
-            }
+          
+                authManager.fetchSeller(id: item.sellerID) { url in
+                    sellerImageURL = url
+                }
+            
         }
     }
+
 
     private var sellerInfo: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -373,12 +391,9 @@ struct ProductPost: View {
 
     private var cardBackground: some View {
         RoundedRectangle(cornerRadius: 24)
-            .fill(.ultraThinMaterial)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.white.opacity(0.25))
-            )
+            .fill(Color.white.opacity(0.85))
     }
+
     
     // MARK: - Favorite Button
     private var postActions: some View {

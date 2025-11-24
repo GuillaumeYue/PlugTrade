@@ -15,7 +15,7 @@ struct PublicProfileView: View {
     @State var sellerName: String = ""
     @State var sellerImage = ""
     @State private var showsaleproducts: Bool = true
-    @EnvironmentObject private var productManager: ProductManager
+    @StateObject private var sellerProducts = PublicSellerProducts()
     @State private var showFull: Bool = false
     
     var body: some View {
@@ -76,23 +76,24 @@ struct PublicProfileView: View {
                     Text("Products for trade").tag(false)
                 }
                 .pickerStyle(.segmented)
-                .padding()
 
                 if showsaleproducts {
-                    PublicProductsForSale(sellerID: userID)
-                        .environmentObject(productManager)
+                    PublicProductsForSale(fetcher: sellerProducts, sellerID: userID)
                 } else {
-                    PublicProductsForTrade(sellerID: userID)
-                        .environmentObject(productManager)
+                    PublicProductsForTrade(fetcher: sellerProducts, sellerID: userID)
                 }
+
+
             }
         }
-        .navigationTitle(sellerName.isEmpty ? "Profile" : sellerName)
+        .padding(.top, 50)
+        .ignoresSafeArea(.container, edges: .top)
         .onAppear {
             authManager.fetchSellerProfile(userID: userID) { name, url in
-                sellerName = name
-                sellerImage = url
-            }
+                   sellerName = name
+                   sellerImage = url
+               }
+            sellerProducts.load(for: userID)
         }
     }
 }

@@ -58,33 +58,38 @@ struct TradeItemCard: View {
                     Chip(text: item.category.rawValue.capitalized)
                 }
             }
-//            Button(action: onPropose) {
-//                Text("Send Request")
-//                    .frame(maxWidth: .infinity)
-//                    .padding(.vertical, 12)
-//            }
-//            .buttonStyle(.borderedProminent)
-//            .cornerRadius(12)
-            Button("Send Request"){
+            Button("Send Request") {
                 sendTrade = true
             }
             .buttonStyle(.borderedProminent)
             .cornerRadius(12)
-            .sheet(isPresented: $sendTrade){
+            .sheet(isPresented: $sendTrade) {
                 TradeProposalSheet(targetItem: item, isPresented: $sendTrade)
                     .environmentObject(authService)
                     .environmentObject(productManager)
                     .environmentObject(notificationService)
             }
+
+            DisclosureGroup {
+                let wants = item.lookingfor ?? []
+                if wants.isEmpty {
+                    Text("No specific needs listed")
+                } else {
+                    ForEach(wants, id: \.self) { want in
+                        Text(want).foregroundColor(.secondary)
+                    }
+                }
+            } label: {
+                    Text("Looking For")
+                
+            }
+
+           
         }
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .background(
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(Color.white.opacity(0.25))
-                )
+                .fill(Color.white.opacity(0.12))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24)
@@ -97,20 +102,14 @@ struct TradeItemCard: View {
                     lineWidth: 1.2
                 )
         )
-        .shadow(color: Color.blue.opacity(0.4), radius: 20)
+        .shadow(color: Color.blue.opacity(0.15), radius: 12)
         .onAppear {
-            
-            // check the curren user
-//            if let currentUser = authService.currentUser {
-//                authService.fetchSeller(id: currentUser.id ?? item.sellerID) { url in
-//                    sellerAvatarURL = url
-//                }
-//            }else {
+            if sellerAvatarURL == nil{
                 authService.fetchSeller(id: item.sellerID) { url in
                     sellerAvatarURL = url
                 }
-//            }
-//            
+            }
+                     
             
         }
     }

@@ -8,28 +8,29 @@
 import SwiftUI
 
 struct PublicProductsForSale: View {
-    @EnvironmentObject var productManager: ProductManager
+    @ObservedObject var fetcher: PublicSellerProducts
     let sellerID: String
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 12) {
-                ForEach(productManager.items.filter {
-                    $0.sellerID == sellerID && $0.itemType == .forSale
-                }) { item in
-                    UserSalesProducts(item: item)
-                }
+                ForEach(fetcher.saleItems) { item in
+                                   UserSalesProducts(item: item)
+                               }
             }
-            .padding(.top)
+            .padding()
         }
         .onAppear {
-            productManager.fetchSellerProducts(for: sellerID)
+            fetcher.load(for: sellerID)
         }
     }
 }
 
 
 #Preview {
-    PublicProductsForSale(sellerID: "iYje6iZ2snZ9ILWzxhPeGBxAp1F2")
-        .environmentObject(ProductManager.shared)
+    PublicProductsForSale(
+        fetcher: PublicSellerProducts(),
+        sellerID: "iYje6iZ2snZ9ILWzxhPeGBxAp1F2"
+    )
 }
+

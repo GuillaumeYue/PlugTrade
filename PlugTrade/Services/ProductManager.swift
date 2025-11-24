@@ -135,6 +135,7 @@ class ProductManager: ObservableObject {
         category: Category,
         image: Data?,
         quantity: Int,
+    lookingFor: [String]?,
         itemType: ItemTypeEnum,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
@@ -157,6 +158,7 @@ class ProductManager: ObservableObject {
                 sellerID: uid,          // 与查询使用同一 UID
                 sellerName: name,
                 quantity: quantity,
+                lookingFor: lookingFor,
                 itemType: itemType,
                 completion: completion
             )
@@ -224,7 +226,7 @@ class ProductManager: ObservableObject {
         }
     }
     
-    private func saveProduct(title: String, price: Double?, location: String, category: Category, imageURL: String, sellerID: String, sellerName: String, quantity: Int,itemType: ItemTypeEnum, completion: @escaping (Result<Void, Error>) -> Void) {
+    private func saveProduct(title: String, price: Double?, location: String, category: Category, imageURL: String, sellerID: String, sellerName: String, quantity: Int, lookingFor: [String]?,itemType: ItemTypeEnum, completion: @escaping (Result<Void, Error>) -> Void) {
         let product = Item(
             id: nil,
             title: title,
@@ -236,6 +238,7 @@ class ProductManager: ObservableObject {
             sellerName: sellerName,
             timestamp: Date(),
             quantity: quantity,
+            lookingfor: lookingFor,
             itemType: itemType
         )
         

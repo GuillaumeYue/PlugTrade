@@ -10,7 +10,7 @@ struct ProfileScreen: View {
     
     @State private var profileedit: Bool = false
     @State private var myproducts: Bool = false
-    @State private var loggedOut: Bool = false
+//    @State private var loggedOut: Bool = false
     @State private var showFull = false
 
     @Environment(\.dismiss) var dismiss
@@ -22,9 +22,9 @@ struct ProfileScreen: View {
                 // MARK: - User Info Section
                 VStack {
                     Spacer().frame(height: 100)
-                    NavigationLink(destination: AuthGate(), isActive: $loggedOut) {
-                        EmptyView()
-                    }
+//                    NavigationLink(destination: AuthGate(), isActive: $loggedOut) {
+//                        EmptyView()
+//                    }
 
                     
                     if let urlString = authManager.currentUser?.profilePictureURL,
@@ -108,10 +108,9 @@ struct ProfileScreen: View {
                         }
                         
                         // Sign Out Button
-                        Button(role: .destructive, action: {
+                        Button(role: .destructive){
                             _ = authManager.signOut()
-                            loggedOut = true
-                        }) {
+                        }label: {
                             Text("Sign Out")
                                 .fontWeight(.bold)
                         }

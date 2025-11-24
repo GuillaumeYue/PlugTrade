@@ -90,6 +90,20 @@ struct TradeDetailView: View {
                     }
                     .foregroundColor(.gray)
                     
+                    DisclosureGroup {
+                        let wants = item.lookingfor ?? []
+                        if wants.isEmpty {
+                            Text("No specific needs listed")
+                        } else {
+                            ForEach(wants, id: \.self) { want in
+                                Text(want).foregroundColor(.secondary)
+                            }
+                        }
+                    } label: {
+                            Text("Looking For")
+                        
+                    }
+                    
                     Divider()
                     
                     // Send Request Button
