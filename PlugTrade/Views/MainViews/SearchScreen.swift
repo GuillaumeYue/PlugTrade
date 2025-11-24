@@ -15,7 +15,7 @@
 
 
 import SwiftUI
-import SDWebImageSwiftUI  
+import SDWebImage
 
 struct SearchScreen: View {
     @EnvironmentObject var productManager: ProductManager

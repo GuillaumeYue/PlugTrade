@@ -15,33 +15,19 @@ struct TradeDetailView: View {
     @EnvironmentObject private var authService: AuthService
     @EnvironmentObject private var productManager: ProductManager
     @EnvironmentObject private var notificationService: NotificationService
+    @EnvironmentObject var favoritesManager: FirebaseFavoritesManager
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 // Product Image
-                AsyncImage(url: URL(string: item.imageURL)) { phase in
-                    switch phase {
-                    case .empty:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 300)
-                            .overlay(ProgressView())
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 300)
-                            .clipped()
-                    case .failure:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 300)
-                            .overlay(Image(systemName: "photo"))
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
+                SDWebImageAsync(
+                    url: URL(string: item.imageURL),
+                    placeholder: Image(systemName: "photo")
+                )
+                .frame(height: 300)
+                .clipped()
+
                 
                 VStack(alignment: .leading, spacing: 12) {
                     // For Trade Badge
@@ -53,20 +39,40 @@ struct TradeDetailView: View {
                         
                         Spacer()
                         
-                        // Category Badge
-                        Text(item.category.rawValue.capitalized)
-                            .font(.subheadline)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.green.opacity(0.2))
-                            .foregroundColor(.green)
-                            .cornerRadius(8)
+                        // Favorite Button
+                        Button(action: {
+                            print("❤️ BUTTON TAPPED!")
+                            print("User: \(AuthService.shared.currentUser?.id ?? "NO USER")")
+                            print("Item: \(item.title)")
+                            favoritesManager.toggleFavorite(item: item)
+                        }) {
+                            VStack {
+                                Image(systemName: favoritesManager.isFavorite(item: item) ? "heart.fill" : "heart")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(favoritesManager.isFavorite(item: item) ? .red : .gray)
+                                Text(favoritesManager.isFavorite(item: item) ? "Saved" : "Save")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(width: 80, height: 60)
+                            .background(Color.green.opacity(0)) // Visible tap area
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                      
                     }
                     
                     // Title
                     Text(item.title)
                         .font(.title2)
                         .fontWeight(.semibold)
+                    
+                    Text(item.category.rawValue.capitalized)
+                        .font(.subheadline)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.green.opacity(0.2))
+                        .foregroundColor(.green)
+                        .cornerRadius(8)
                     
                     Divider()
                     
@@ -85,10 +91,6 @@ struct TradeDetailView: View {
                     .foregroundColor(.gray)
                     
                     Divider()
-                    
-                    // Favorites Toggle
-                    Toggle("Save to favorites", isOn: $isFavorite)
-                        .tint(.green)
                     
                     // Send Request Button
                     let isOwnItem = item.sellerID == authService.currentUser?.id
@@ -141,6 +143,7 @@ struct TradeDetailView_Previews: PreviewProvider {
                 .environmentObject(AuthService.shared)
                 .environmentObject(ProductManager.shared)
                 .environmentObject(NotificationService.shared)
+                .environmentObject(FirebaseFavoritesManager.shared)
         }
     }
 }

@@ -129,33 +129,36 @@ struct NotificationDetailSheet: View {
         Group {
             if let item = relatedItem {
                 HStack(spacing: 12) {
-                    AsyncImage(url: URL(string: item.imageURL)) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        ProgressView()
-                    }
+
+                    SDWebImageAsync(
+                        url: URL(string: item.imageURL),
+                        placeholder: Image(systemName: "photo")
+                    )
+                    .scaledToFill()
                     .frame(width: 80, height: 80)
+                    .clipped()
                     .cornerRadius(8)
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text(item.title)
                             .font(.headline)
+
                         Text(item.location)
                             .font(.caption)
                             .foregroundColor(.secondary)
+
                         Text(item.category.rawValue)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     Spacer()
                 }
                 .padding()
                 .background(Color(.secondarySystemBackground))
                 .cornerRadius(12)
                 .padding(.horizontal)
+
             } else {
                 ProgressView()
                     .padding()
@@ -165,6 +168,7 @@ struct NotificationDetailSheet: View {
             }
         }
     }
+
     
     private func loadRelatedItem(itemId: String) {
         let db = Firestore.firestore()
@@ -281,29 +285,32 @@ struct NotificationDetailSheet: View {
                 .font(.headline)
             
             HStack(spacing: 12) {
-                AsyncImage(url: URL(string: item.imageURL)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    ProgressView()
-                }
+
+                SDWebImageAsync(
+                    url: URL(string: item.imageURL),
+                    placeholder: Image(systemName: "photo")
+                )
+                .scaledToFill()
                 .frame(width: 80, height: 80)
+                .clipped()
                 .cornerRadius(8)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title)
                         .font(.headline)
+
                     Text(item.location)
                         .font(.caption)
                         .foregroundColor(.secondary)
+
                     Text(item.category.rawValue)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
             }
+
         }
     }
     
@@ -319,26 +326,28 @@ struct NotificationDetailSheet: View {
             } else {
                 ForEach(items) { item in
                     HStack(spacing: 12) {
-                        AsyncImage(url: URL(string: item.imageURL)) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            ProgressView()
-                        }
+
+                        SDWebImageAsync(
+                            url: URL(string: item.imageURL),
+                            placeholder: Image(systemName: "photo")
+                        )
+                        .scaledToFill()
                         .frame(width: 60, height: 60)
+                        .clipped()
                         .cornerRadius(8)
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text(item.title)
                                 .font(.subheadline)
+
                             Text(item.location)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Spacer()
                     }
+
                     .padding(.vertical, 4)
                 }
             }

@@ -46,28 +46,12 @@ struct PublicUserTradeProducts: View {
             }
             if isExpanded {
                 NavigationLink(destination: TradeItemCard(item: item , onPropose: {})) {
-                    AsyncImage(url: URL(string: item.imageURL)) { phase in
-                        switch phase {
-                        case .empty:
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 250)
-                                .overlay(ProgressView())
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 250)
-                                .clipped()
-                        case .failure:
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 250)
-                                .overlay(Image(systemName: "photo"))
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
+                    SDWebImageAsync(
+                        url: URL(string: item.imageURL),
+                        placeholder: Image(systemName: "photo")
+                    )
+                    .frame(height: 250)
+                    .clipped()
                     .overlay(
                         VStack {
                             Spacer()

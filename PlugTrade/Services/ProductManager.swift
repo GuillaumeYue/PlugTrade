@@ -10,6 +10,7 @@ import FirebaseFirestore
 import FirebaseStorage
 import Combine
 import FirebaseAuth
+import SDWebImage
 
 class ProductManager: ObservableObject {
     static let shared = ProductManager()
@@ -50,6 +51,8 @@ class ProductManager: ObservableObject {
                 self.items = documents.compactMap { doc in
                     try? doc.data(as: Item.self)
                 }
+                
+                self.preloadImages()
                 
                 print("Fetched \(self.items.count) products from Firebase")
             }
@@ -249,5 +252,25 @@ class ProductManager: ObservableObject {
             completion(.failure(error))
         }
     }
+    
+    
+    func preloadImages() {
+        for item in items {
+            let urlString = item.imageURL
+            guard let url = URL(string: urlString) else { continue }
+
+            
+            if ImageCache.shared.get(urlString) != nil { continue }
+
+            
+            SDWebImageDownloader.shared.downloadImage(with: url) { img, _, _, _ in
+                if let img = img {
+                    ImageCache.shared.set(urlString, img)
+                }
+            }
+        }
+    }
+
+
 }
 

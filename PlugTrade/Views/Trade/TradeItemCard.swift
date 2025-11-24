@@ -25,27 +25,14 @@ struct TradeItemCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             NavigationLink(destination: TradeDetailView(item: item)) {
-                AsyncImage(url: URL(string: item.imageURL)) { phase in
-                    switch phase {
-                    case .empty:
-                        ZStack {
-                            Rectangle().fill(Color(.secondarySystemBackground))
-                            ProgressView()
-                        }
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    case .failure:
-                        ZStack {
-                            Rectangle().fill(Color(.secondarySystemBackground))
-                            Image(systemName: "photo")
-                        }
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
+                SDWebImageAsync(
+                    url: URL(string: item.imageURL),
+                    placeholder: Image(systemName: "photo")
+                )
                 .frame(height: 180)
                 .clipped()
                 .cornerRadius(16)
+
             }
             .buttonStyle(.plain)
 

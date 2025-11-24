@@ -76,6 +76,8 @@ private struct ProductCard: View {
                            .fontWeight(.semibold)
                 }
                 
+                Text("Quantity: \(item.quantity)")
+                    .font(Font.caption.bold())
             }
 
             Spacer()
@@ -182,32 +184,27 @@ private struct ExpandedContent: View {
 
 // MARK: - Product Image
 private struct ProductImage: View {
+    @State private var imageIsLoading: Bool = false
     let urlString: String
 
     var body: some View {
-        AsyncImage(url: URL(string: urlString)) { phase in
-            switch phase {
-            case .empty:
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 200)
-                    .overlay(ProgressView())
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: 200)
-                    .clipped()
-                    .cornerRadius(8)
-            case .failure:
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 200)
-                    .overlay(Image(systemName: "photo"))
-            @unknown default:
-                EmptyView()
+        SDWebImageAsync(
+            url: URL(string: urlString),
+            placeholder: Image(systemName: "photo")
+        )
+        .frame(height: 200)
+        .clipped()
+        .cornerRadius(8)
+        .overlay(
+            Group {
+                if imageIsLoading {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .overlay(ProgressView())
+                }
             }
-        }
+        )
+
     }
 }
 

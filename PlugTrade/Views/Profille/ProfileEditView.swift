@@ -33,29 +33,14 @@ struct ProfileEditView: View {
                         .cornerRadius(8)
                 } else if let urlString = authManager.currentUser?.profilePictureURL,
                           let url = URL(string: urlString) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 200)
-                                .overlay(ProgressView())
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 200)
-                                .clipped()
-                                .cornerRadius(8)
-                        case .failure:
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 200)
-                                .overlay(Image(systemName: "person.crop.circle.fill"))
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
+                    SDWebImageAsync(
+                        url: url,
+                        placeholder: Image(systemName: "person.crop.circle.fill")
+                    )
+                    .frame(width: 200 ,height: 200)
+                    .clipped()
+                    .cornerRadius(8)
+
                 } else {
                     VStack(spacing: 12) {
                         Image(systemName: "person.crop.circle.fill")
@@ -143,4 +128,5 @@ struct ProfileEditView: View {
 
 #Preview {
     ProfileEditView()
+        .environmentObject(AuthService.shared)
 }

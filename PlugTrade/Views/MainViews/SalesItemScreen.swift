@@ -15,7 +15,7 @@
 
 
 import SwiftUI
-import SDWebImageSwiftUI
+import SDWebImage
 
 struct SalesItemScreen: View {
     @EnvironmentObject var productManager: ProductManager
@@ -243,4 +243,5 @@ struct SalesItemScreen: View {
                 .environmentObject(AuthService.shared)
                 .environmentObject(NotificationService.shared)
                 .environmentObject(FirebaseCartManager.shared)
+                .environmentObject(FirebaseFavoritesManager.shared)
 }

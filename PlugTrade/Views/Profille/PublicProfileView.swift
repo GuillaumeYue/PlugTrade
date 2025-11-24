@@ -16,6 +16,7 @@ struct PublicProfileView: View {
     @State var sellerImage = ""
     @State private var showsaleproducts: Bool = true
     @EnvironmentObject private var productManager: ProductManager
+    @State private var showFull: Bool = false
     
     var body: some View {
         VStack(spacing: 16) {
@@ -30,6 +31,19 @@ struct PublicProfileView: View {
                 .frame(width: 120, height: 150)
                 .clipShape(Circle())
                 .aspectRatio(contentMode: .fit)
+                .onTapGesture {showFull.toggle()}
+                .fullScreenCover(isPresented: $showFull) {
+                    ZStack {
+                           Color.black.ignoresSafeArea()
+
+                           SDWebImageAsync(
+                               url: URL(string: sellerImage),
+                               placeholder: Image(systemName: "photo")
+                           )
+                           .scaledToFit()
+                           .onTapGesture { showFull = false }
+                       }
+                }
                 .overlay(
                     Circle()
                         .stroke(Color.gray.opacity(0.3), lineWidth: 2)

@@ -5,7 +5,8 @@ struct ContentView: View {
     @EnvironmentObject var authManager: AuthService
     @EnvironmentObject var productManager: ProductManager
     @EnvironmentObject var notificationService: NotificationService
-    @EnvironmentObject var cartManager: FirebaseCartManager  
+    @EnvironmentObject var cartManager: FirebaseCartManager
+    @EnvironmentObject var favoritesManager: FirebaseFavoritesManager
 
     @State private var isLoaded = false
 
@@ -36,8 +37,7 @@ struct ContentView: View {
                         .onAppear {
                             productManager.fetchUserProducts()
                             notificationService.startListening()
-
-                         
+                            favoritesManager.startListening()
                             FirebaseCartManager.shared.startListening()
                         }
                 }
@@ -47,13 +47,14 @@ struct ContentView: View {
             if Auth.auth().currentUser != nil {
                 productManager.fetchUserProducts()
                 notificationService.startListening()
-
-           
+                favoritesManager.startListening()
                 FirebaseCartManager.shared.startListening()
 
             } else {
                 productManager.stopUserProductsListener()
                 notificationService.stopListening()
+                FirebaseCartManager.shared.startListening()
+                FirebaseFavoritesManager.shared.startListening()
 
                
             }

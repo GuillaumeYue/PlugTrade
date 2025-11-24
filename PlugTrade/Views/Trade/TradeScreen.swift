@@ -212,7 +212,7 @@ struct TradeScreen: View {
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 6)
+                    
                     }
                 }
             }

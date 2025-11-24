@@ -15,44 +15,56 @@ struct DetailView: View {
     let item: Item
     @State private var isFavorite = false
     @EnvironmentObject var cartManager: FirebaseCartManager
+    @EnvironmentObject var favoritesManager: FirebaseFavoritesManager
     @State private var quantity = 1
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                AsyncImage(url: URL(string: item.imageURL)) { phase in
-                    switch phase {
-                    case .empty:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 300)
-                            .overlay(ProgressView())
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 300)
-                            .clipped()
-                    case .failure:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 300)
-                            .overlay(Image(systemName: "photo"))
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-                
+
+                SDWebImageAsync(
+                    url: URL(string: item.imageURL),
+                    placeholder: Image(systemName: "photo")
+                )
+                .scaledToFill()
+                .frame(height: 300)
+                .clipped()
+
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("$\(item.price ?? 0.0, specifier: "%.0f")")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.blue)
-                    
+
+                    HStack {
+                        Text("$\(item.price ?? 0.0, specifier: "%.0f")")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.blue)
+
+                        Spacer()
+
+                        // Favorite Button
+                        Button(action: {
+                            print("❤️ BUTTON TAPPED!")
+                            print("User: \(AuthService.shared.currentUser?.id ?? "NO USER")")
+                            print("Item: \(item.title)")
+                            favoritesManager.toggleFavorite(item: item)
+                        }) {
+                            VStack {
+                                Image(systemName: favoritesManager.isFavorite(item: item) ? "heart.fill" : "heart")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(favoritesManager.isFavorite(item: item) ? .red : .gray)
+                                Text(favoritesManager.isFavorite(item: item) ? "Saved" : "Save")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(width: 80, height: 60)
+                            .background(Color.green.opacity(0))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
                     Text(item.title)
                         .font(.title2)
                         .fontWeight(.semibold)
-                    
+
                     Text(item.category.rawValue.capitalized)
                         .font(.subheadline)
                         .padding(.horizontal, 12)
@@ -60,34 +72,28 @@ struct DetailView: View {
                         .background(Color.blue.opacity(0.2))
                         .foregroundColor(.blue)
                         .cornerRadius(8)
-                    
+
                     Divider()
-                    
+
                     HStack {
                         Image(systemName: "person.circle.fill")
                         Text("Sold by \(item.sellerName)")
                     }
                     .foregroundColor(.gray)
-                    
+
                     HStack {
                         Image(systemName: "location.fill")
                         Text(item.location)
                     }
                     .foregroundColor(.gray)
-                    
+
                     Divider()
-                    
-                    Toggle("Save to favorites", isOn: $isFavorite)
-                        .tint(.blue)
-                    
-                    HStack{
+
+                    HStack {
                         Text("Quantity:")
-                        QuantityPicker(quantity: $quantity,
-                        maxQuantity: item.quantity)
+                        QuantityPicker(quantity: $quantity, maxQuantity: item.quantity)
                     }
-                    
-                   
-                    
+
                     Button(action: {
                         if cartManager.isInCart(item: item) {
                             cartManager.removeFromCart(item: item)
@@ -109,6 +115,7 @@ struct DetailView: View {
                 }
                 .padding()
             }
+
         }
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -150,6 +157,7 @@ struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
         DetailView(item: SampleData.items[0])
             .environmentObject(FirebaseCartManager.shared)
+            .environmentObject(FirebaseFavoritesManager())
 
     }
 }

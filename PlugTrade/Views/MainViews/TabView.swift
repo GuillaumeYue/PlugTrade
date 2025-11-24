@@ -19,11 +19,6 @@ struct MainTabView: View {
                     Image(systemName: "house.fill")
                     Text("Home")
                 }
-//            SearchScreen()
-//                .tabItem {
-//                    Image(systemName: "magnifyingglass")
-//                    Text("Search")
-//                }
             SalesItemScreen()
                 .tabItem {
                     Image(systemName: "dollarsign")

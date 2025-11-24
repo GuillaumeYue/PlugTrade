@@ -11,6 +11,8 @@ struct ProfileScreen: View {
     @State private var profileedit: Bool = false
     @State private var myproducts: Bool = false
     @State private var loggedOut: Bool = false
+    @State private var showFull = false
+
     @Environment(\.dismiss) var dismiss
 
 
@@ -34,6 +36,19 @@ struct ProfileScreen: View {
                         )
                         .frame(width: 120, height: 120)
                         .clipShape(Circle())
+                        .onTapGesture {showFull.toggle()}
+                        .fullScreenCover(isPresented: $showFull) {
+                            ZStack {
+                                   Color.black.ignoresSafeArea()
+
+                                   SDWebImageAsync(
+                                       url: url,
+                                       placeholder: Image(systemName: "photo")
+                                   )
+                                   .scaledToFit()
+                                   .onTapGesture { showFull = false }
+                               }
+                        }
                         .overlay(
                             Circle()
                                 .stroke(Color.gray.opacity(0.3), lineWidth: 2)

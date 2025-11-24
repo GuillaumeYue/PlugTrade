@@ -12,7 +12,7 @@
 //
 
 import SwiftUI
-import SDWebImageSwiftUI
+import SDWebImage
 
 struct ItemRowView: View {
     let item: Item

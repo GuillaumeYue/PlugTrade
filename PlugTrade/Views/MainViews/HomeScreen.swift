@@ -203,31 +203,53 @@ struct ProductPost: View {
     let item: Item
 
     @ObservedObject private var authManager = AuthService.shared
+    @EnvironmentObject var favoritesManager: FirebaseFavoritesManager
     @State private var sellerImageURL: String?
     @State private var rotate = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sellerRow
+        VStack(alignment: .leading, spacing: 10) {
+            
             productImageSection
-            priceAndTags
-            Divider()
+                .overlay(alignment: .bottomTrailing){
+                    postActions
+                }
+            Text(item.title)
+                .font(.headline)
+                .lineLimit(2)
+            HStack{
+                sellerRow
+                Spacer()
+                HStack(spacing: 6) {
+                    if(item.itemType == .forSale){Chip(text: "For Sale")}
+                    else {Chip(text: "For Trade")}
+                    
+                    Chip(text: item.category.rawValue.capitalized)
+                }
+            }
+          
+            priceOrTradeBadge
+            
+ 
         }
-        .padding(18)
+        .padding(12)
         .background(cardBackground)
         .overlay(cardBorder)
+        
         .shadow(color: Color.blue.opacity(0.4), radius: 20)
     }
     
     private var sellerRow: some View {
-        NavigationLink(destination: PublicProfileView(userID: item.sellerID)) {
-            HStack {
-                sellerAvatar
-                sellerInfo
-                Spacer()
+        HStack{
+            NavigationLink(destination: PublicProfileView(userID: item.sellerID)) {
+                    sellerAvatar
+                    sellerInfo
+
+               
             }
-            .padding(.horizontal)
+            
         }
+       
     }
 
     private var sellerAvatar: some View {
@@ -282,10 +304,9 @@ struct ProductPost: View {
                 url: URL(string: item.imageURL),
                 placeholder: Image(systemName: "photo")
             )
-            .frame(maxWidth: 420)
-            .frame(height: 250)
+            .frame(height: 180)
             .clipped()
-            .overlay(productOverlay)
+            .cornerRadius(16)
         }
     }
 
@@ -298,30 +319,7 @@ struct ProductPost: View {
         }
     }
 
-    private var productOverlay: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Text(item.title)
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.black.opacity(0.6))
-                    .cornerRadius(8)
-                Spacer()
-            }
-            .padding()
-        }
-    }
-
-    private var priceAndTags: some View {
-        HStack {
-            priceOrTradeBadge
-            Spacer()
-            postActions
-        }
-        .padding(.horizontal)
-    }
+  
 
     @ViewBuilder
     private var priceOrTradeBadge: some View {
@@ -374,6 +372,27 @@ struct ProductPost: View {
                     .fill(Color.white.opacity(0.25))
             )
     }
+    
+    // MARK: - Favorite Button
+    private var postActions: some View {
+        Button(action: {
+            favoritesManager.toggleFavorite(item: item)
+        }) {
+            VStack {
+                Image(systemName: favoritesManager.isFavorite(item: item) ? "heart.fill" : "heart")
+                    .font(.system(size: 28))
+                    .foregroundColor(favoritesManager.isFavorite(item: item) ? .red : .gray)
+
+                Text(favoritesManager.isFavorite(item: item) ? "Saved" : "Save")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            .frame(width: 80, height: 60)
+            .contentShape(Rectangle())   // better tap area
+        }
+        .buttonStyle(.plain)
+    }
+
 }
 
 
@@ -390,14 +409,7 @@ private var cardBorder: some View {
         )
 }
 
-private var postActions: some View {
-    HStack(spacing: 16) {
-        Image(systemName: "heart")
-        Image(systemName: "message")
-        Image(systemName: "cart")
-    }
-    .font(.title3)
-}
+
 
 
 
@@ -419,7 +431,7 @@ struct CategoryCircle: View {
             VStack(spacing: 8) {
                 Circle()
                     .fill(isSelected ? Color.blue : Color.blue.opacity(0.2))
-                    .frame(width: 70, height: 70)
+                    .frame(width: 50, height: 50)
                     .overlay(
                         Image(systemName: icon)
                             .font(.system(size: 28))
@@ -576,6 +588,7 @@ struct HomeScreen_Previews: PreviewProvider {
                 .environmentObject(ProductManager.shared)
                 .environmentObject(NotificationService.shared)
                 .environmentObject(FirebaseCartManager.shared)
+                .environmentObject(FirebaseFavoritesManager.shared)
         }
     }
 }

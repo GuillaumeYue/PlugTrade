@@ -11,12 +11,14 @@
 		542250122EAC7FD600969F8A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 542250112EAC7FD600969F8A /* FirebaseCore */; };
 		542514D02ECD6D8200848F9F /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = 542514CF2ECD6D8200848F9F /* SDWebImage */; };
 		542514D22ECD6D8200848F9F /* SDWebImageMapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 542514D12ECD6D8200848F9F /* SDWebImageMapKit */; };
+		54B614A72ED434AE0032A84B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 54B614A32ED434AE0032A84B /* LaunchScreen.storyboard */; };
 		54F6E2F42EB3E2C900E61528 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 54F6E2F32EB3E2C900E61528 /* FirebaseAuth */; };
 		54F6E2F62EB3E37600E61528 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 54F6E2F52EB3E37600E61528 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		54224FFB2EAC73F100969F8A /* PlugTrade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlugTrade.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		54B614A32ED434AE0032A84B /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -48,6 +50,7 @@
 				54224FFD2EAC73F100969F8A /* PlugTrade */,
 				5422500E2EAC7FD100969F8A /* Frameworks */,
 				54224FFC2EAC73F100969F8A /* Products */,
+				54B614A32ED434AE0032A84B /* LaunchScreen.storyboard */,
 			);
 			sourceTree = "<group>";
 		};
@@ -137,6 +140,7 @@
 		54224FF92EAC73F100969F8A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				54B614A72ED434AE0032A84B /* LaunchScreen.storyboard in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */

@@ -42,15 +42,13 @@ struct TradeProposalSheet: View {
     // MARK: Sections
     private var header: some View {
         HStack(spacing: 12) {
-            AsyncImage(url: URL(string: targetItem.imageURL)) { phase in
-                if case .success(let img) = phase {
-                    img.resizable().scaledToFill()
-                } else {
-                    Color(.secondarySystemBackground)
-                }
-            }
+            SDWebImageAsync(
+                url: URL(string: targetItem.imageURL),
+                placeholder: Image(systemName: "photo")
+            )
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 10))
+
 
             VStack(alignment: .leading) {
                 Text(targetItem.title).font(.subheadline).lineLimit(2)
@@ -196,15 +194,13 @@ struct OfferSelectableRow: View {
     var body: some View {
         Button(action: onToggle) {
             HStack(spacing: 12) {
-                AsyncImage(url: URL(string: item.imageURL)) { phase in
-                    if case .success(let img) = phase {
-                        img.resizable().scaledToFill()
-                    } else {
-                        Color(.secondarySystemBackground)
-                    }
-                }
+                SDWebImageAsync(
+                    url: URL(string: item.imageURL),
+                    placeholder: Image(systemName: "photo")
+                )
                 .frame(width: 52, height: 52)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
+
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title).font(.subheadline).foregroundColor(
