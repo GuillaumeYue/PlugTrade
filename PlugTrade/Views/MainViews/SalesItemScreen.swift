@@ -30,6 +30,7 @@ struct SalesItemScreen: View {
     
     var filteredItems: [Item] {
         var items = productManager.items
+        let currentUser = authManager.currentUser?.id
         
         if selectedCategory != .all {
             items = items.filter { $0.category == selectedCategory }
@@ -40,6 +41,7 @@ struct SalesItemScreen: View {
         }
         
         return items
+            .filter { $0.sellerID != currentUser}
     }
     
     var body: some View {

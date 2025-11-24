@@ -20,10 +20,16 @@ struct HomeScreen: View {
 
 
     var filteredItems: [Item] {
+        let currentUser = authManager.currentUser?.id
+        
+        
         if let category = selectedCategory, category != .all {
-            return productManager.items.filter { $0.category == category }
+            return productManager.items
+                .filter { $0.category == category }
+                .filter { $0.sellerID != currentUser }
         }
         return productManager.items
+            .filter { $0.sellerID != currentUser}
     }
 
     var body: some View {
@@ -182,6 +188,7 @@ struct HomeScreen: View {
                     .foregroundColor(.gray)
                     .padding()
             } else {
+               
                 ForEach(filteredItems.prefix(10)) { item in
                     ProductPost(item: item)
                         .background(.ultraThinMaterial)

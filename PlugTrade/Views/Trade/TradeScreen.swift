@@ -205,7 +205,7 @@ struct TradeScreen: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 14) {
-                        ForEach(items) { item in
+                        ForEach(items.filter{$0.sellerID != authService.currentUser!.id}) { item in
                             TradeItemCard(item: item) {
                                 productManager.fetchUserProducts()
                                 sheetWrapper = ProposalWrapper(item: item)
