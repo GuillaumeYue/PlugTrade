@@ -23,11 +23,11 @@ class NotificationService: ObservableObject {
     
     func startListening() {
         guard let userId = Auth.auth().currentUser?.uid else {
-            print("⚠️ NotificationService: No user logged in")
+            print("NotificationService: No user logged in")
             return
         }
         
-        print("🔔 NotificationService: Starting listener for user: \(userId)")
+        print("NotificationService: Starting listener for user: \(userId)")
         
         // Remove existing listener
         listener?.remove()
@@ -44,16 +44,16 @@ class NotificationService: ObservableObject {
             if let error = error {
                 // If index error, fall back to simpler query
                 if error.localizedDescription.contains("index") {
-                    print("⚠️ Index error, falling back to simple query")
+                    print("Index error, falling back to simple query")
                     self.startListeningSimple()
                     return
                 }
-                print("❌ NotificationService: Error listening: \(error.localizedDescription)")
+                print("NotificationService: Error listening: \(error.localizedDescription)")
                 return
             }
             
             guard let documents = snapshot?.documents else {
-                print("⚠️ NotificationService: No documents")
+                print("NotificationService: No documents")
                 return
             }
             
@@ -72,7 +72,7 @@ class NotificationService: ObservableObject {
             DispatchQueue.main.async {
                 self.notifications = loadedNotifications
                 self.unreadCount = loadedNotifications.filter { !$0.isRead }.count
-                print("✅ NotificationService: Loaded \(loadedNotifications.count) notifications, \(self.unreadCount) unread")
+                print("NotificationService: Loaded \(loadedNotifications.count) notifications, \(self.unreadCount) unread")
             }
         }
     }
@@ -88,7 +88,7 @@ class NotificationService: ObservableObject {
             guard let self = self else { return }
             
             if let error = error {
-                print("❌ NotificationService: Error in simple query: \(error.localizedDescription)")
+                print("NotificationService: Error in query: \(error.localizedDescription)")
                 return
             }
             
@@ -102,7 +102,7 @@ class NotificationService: ObservableObject {
                     notification.id = document.documentID
                     loadedNotifications.append(notification)
                 } catch {
-                    print("❌ Error decoding notification: \(error)")
+                    print("Error decoding notification: \(error)")
                 }
             }
             
@@ -123,11 +123,11 @@ class NotificationService: ObservableObject {
             self.notifications = []
             self.unreadCount = 0
         }
-        print("🔕 NotificationService: Stopped listening")
+        print("Notification listener stopped listening")
     }
     
     func createNotification(userId: String, title: String, body: String, type: NotificationType, relatedItemId: String? = nil) {
-        print("📤 NotificationService: Creating notification")
+        print("Creating notification")
         print("   User ID: \(userId)")
         print("   Title: \(title)")
         print("   Type: \(type.rawValue)")
@@ -147,9 +147,9 @@ class NotificationService: ObservableObject {
         
         db.collection("notifications").addDocument(data: notificationDict) { [weak self] error in
             if let error = error {
-                print("❌ NotificationService: Error creating notification: \(error.localizedDescription)")
+                print("Error creating notification: \(error.localizedDescription)")
             } else {
-                print("✅ NotificationService: Notification created successfully")
+                print("Notification created successfully")
                 // Verify it was created
                 self?.verifyNotificationCreated(userId: userId, title: title)
             }
@@ -163,11 +163,11 @@ class NotificationService: ObservableObject {
             .limit(to: 1)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    print("⚠️ Could not verify notification: \(error.localizedDescription)")
+                    print("Could not verify notification: \(error.localizedDescription)")
                 } else if let docs = snapshot?.documents, !docs.isEmpty {
-                    print("✅ Verified: Notification exists in Firestore")
+                    print("Notification verified successfully")
                 } else {
-                    print("⚠️ Warning: Notification not found after creation")
+                    print("No notification found in Firestore")
                 }
             }
     }
@@ -177,9 +177,9 @@ class NotificationService: ObservableObject {
             "isRead": true
         ]) { error in
             if let error = error {
-                print("❌ Error marking notification as read: \(error.localizedDescription)")
+                print("Error marking notification as read: \(error.localizedDescription)")
             } else {
-                print("✅ Notification marked as read")
+                print("Notification marked successfully")
             }
         }
     }
@@ -198,9 +198,9 @@ class NotificationService: ObservableObject {
         
         batch.commit { error in
             if let error = error {
-                print("❌ Error marking all as read: \(error.localizedDescription)")
+                print("Error marking all as read: \(error.localizedDescription)")
             } else {
-                print("✅ All notifications marked as read")
+                print("✅ All notifications marked successfully")
             }
         }
     }
@@ -214,7 +214,7 @@ class NotificationService: ObservableObject {
             .limit(to: 50)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    print("❌ Error fetching notifications: \(error.localizedDescription)")
+                    print("Error fetching notifications: \(error.localizedDescription)")
                     return
                 }
                 
@@ -227,7 +227,7 @@ class NotificationService: ObservableObject {
                         notification.id = document.documentID
                         loadedNotifications.append(notification)
                     } catch {
-                        print("❌ Error decoding: \(error)")
+                        print("Error decoding: \(error)")
                     }
                 }
                 

@@ -432,8 +432,7 @@ struct NotificationDetailSheet: View {
             return
         }
         
-        // Query without orderBy to avoid index requirement
-        // We'll filter and sort in memory instead
+        
         db.collection("trade_proposals")
             .whereField("productID", isEqualTo: relatedItemId)
             .whereField("sellerID", isEqualTo: currentUserId)
@@ -473,7 +472,7 @@ struct NotificationDetailSheet: View {
                         timestamp: (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
                     )
                 }
-                .sorted { $0.timestamp > $1.timestamp } // Sort by timestamp descending
+                .sorted { $0.timestamp > $1.timestamp } 
                 
                 guard let proposal = proposals.first else {
                     DispatchQueue.main.async {

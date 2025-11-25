@@ -26,10 +26,10 @@ struct ItemRowView: View {
                 url: URL(string: item.imageURL),
                 placeholder: Image(systemName: "photo")
             )
-            .frame(width: 200, height: 120)              // match the grid tile size
-            .aspectRatio(contentMode: .fit)              // your pattern
-            .clipped()                                   // prevents overflow
-            .cornerRadius(8)                             // keep original corner roundness
+            .frame(width: 200, height: 120)              
+            .aspectRatio(contentMode: .fit)
+            .clipped()
+            .cornerRadius(8)
             
             .overlay(alignment: .bottomTrailing) {
                 HStack(spacing: 16) {

@@ -166,7 +166,6 @@ struct ListProductScreen: View {
     private func postItem() {
         
         
-        // Turn the text into an array
         var lookingForArray = lookingfor
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }

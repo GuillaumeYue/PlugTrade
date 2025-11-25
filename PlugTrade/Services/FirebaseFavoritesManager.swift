@@ -97,10 +97,10 @@ class FirebaseFavoritesManager: ObservableObject {
             .collection("favorites")
             .document(itemKey)
         
-        print("📍 Firebase path: users/\(userID)/favorites/\(itemKey)")
+        print("Firebase path: users/\(userID)/favorites/\(itemKey)")
         
         if isFavorite(item: item) {
-            print("🗑️ Removing from favorites")
+            print("Removing from favorites")
             favoriteRef.delete { error in
                 if let error = error {
                     print(" Delete error: \(error.localizedDescription)")
@@ -130,7 +130,7 @@ class FirebaseFavoritesManager: ObservableObject {
     func isFavorite(item: Item) -> Bool {
         let itemKey = createItemKey(for: item)
         let result = favoriteItemIDs.contains(itemKey)
-        print("🔍 isFavorite(\(item.title)): \(result)")
+        print("isFavorite(\(item.title)): \(result)")
         return result
     }
 }
