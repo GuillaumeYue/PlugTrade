@@ -410,7 +410,7 @@ struct ProductPost: View {
                     .foregroundColor(.gray)
             }
             .frame(width: 80, height: 60)
-            .contentShape(Rectangle())   // better tap area
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -469,7 +469,6 @@ struct CategoryCircle: View {
 }
 
 // MARK: - Notifications Sheet + Views
-// (unchanged because they were already correct)
 
 struct NotificationsView: View {
     @Environment(\.dismiss) var dismiss

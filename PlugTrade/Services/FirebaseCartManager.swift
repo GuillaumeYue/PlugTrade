@@ -23,13 +23,13 @@ class FirebaseCartManager: ObservableObject {
             .addSnapshotListener { snapshot, error in
 
                 if let error = error {
-                    print("❌ Cart listener error:", error.localizedDescription)
+                    print("Cart listener error:", error.localizedDescription)
                     return
                 }
 
                 guard let documents = snapshot?.documents else { return }
 
-                print("🛒 Cart updated — \(documents.count) items")
+                print("Cart updated — \(documents.count) items")
 
                 self.cartItems = documents.compactMap { doc in
                     try? doc.data(as: CartItem.self)
@@ -49,25 +49,25 @@ class FirebaseCartManager: ObservableObject {
         
         cartRef.getDocument { snapshot, error in
             if let error = error {
-                print("🔥 Error checking cart:", error)
+                print("Error checking cart:", error)
                 return
             }
             
             if let snapshot = snapshot, snapshot.exists {
-                print("🟡 Item already in cart, increasing quantity by \(quantity)")
+                print("Item already in cart, increasing quantity by \(quantity)")
                 
                 cartRef.updateData([
                     "quantity": FieldValue.increment(Int64(quantity))
                 ]) { error in
                     if let error = error {
-                        print("🔥 Failed to update quantity:", error)
+                        print("Failed to update quantity:", error)
                     } else {
-                        print("🟢 Quantity updated successfully")
+                        print("Quantity updated successfully")
                     }
                 }
                 
             } else {
-                print("🟢 Adding NEW item to cart with quantity \(quantity)")
+                print("Adding NEW item to cart with quantity \(quantity)")
                 
                 let data: [String: Any] = [
                     "category": item.category.rawValue,
@@ -84,9 +84,9 @@ class FirebaseCartManager: ObservableObject {
                 
                 cartRef.setData(data) { error in
                     if let error = error {
-                        print("🔥 Error adding item to cart:", error)
+                        print("Error adding item to cart:", error)
                     } else {
-                        print("🟢 Item added to cart")
+                        print("Item added to cart")
                     }
                 }
             }
@@ -102,7 +102,7 @@ class FirebaseCartManager: ObservableObject {
             return
         }
 
-        // ✅ FIX: products are stored in the MAIN /products collection
+  
         let productRef = Firestore.firestore()
             .collection("products")
             .document(itemID)
@@ -117,7 +117,7 @@ class FirebaseCartManager: ObservableObject {
                 return
             }
 
-            print("🟢 Stock updated for seller.")
+            print(" Stock updated for seller.")
 
             NotificationService.shared.createNotification(
                 userId: cartItem.sellerID,
@@ -143,9 +143,9 @@ class FirebaseCartManager: ObservableObject {
             processPurchase(cartItem: cartItem) { result in
                 switch result {
                 case .success:
-                    print("🟢 Processed purchase for \(cartItem.title)")
+                    print("Processed purchase for \(cartItem.title)")
                 case .failure(let error):
-                    print("❌ Failed processing \(cartItem.title): \(error.localizedDescription)")
+                    print("Failed processing \(cartItem.title): \(error.localizedDescription)")
                     allSuccess = false
                 }
 

@@ -54,7 +54,7 @@ struct TradeScreen: View {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         HStack(spacing: 16) {
 
-                            // NOTIFICATIONS — merged + unread badge
+                            // NOTIFICATIONS
                             Button(action: { showNotifications = true }) {
                                 ZStack(alignment: .topTrailing) {
                                     Image(systemName: "bell.fill")
@@ -74,7 +74,7 @@ struct TradeScreen: View {
                                 }
                             }
 
-                            // CART — merged full version
+                            // CART
                             NavigationLink(destination: CartView()) {
                                 ZStack(alignment: .topTrailing) {
                                     Image(systemName: "cart.fill")

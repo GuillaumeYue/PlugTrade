@@ -258,7 +258,7 @@ class AuthService: ObservableObject {
         let db = Firestore.firestore()
         db.collection("users").document(userID).getDocument { snapshot, error in
             if let error = error {
-                print("Error fetching seller profile: \(error.localizedDescription)")
+                print("\(error.localizedDescription)")
                 completion("Error", "")
                 return
             }
