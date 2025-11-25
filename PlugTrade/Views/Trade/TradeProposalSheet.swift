@@ -7,6 +7,7 @@
 
 import FirebaseFirestore
 import SwiftUI
+import Foundation
 
 struct TradeProposalSheet: View {
     let targetItem: Item
@@ -41,15 +42,13 @@ struct TradeProposalSheet: View {
     // MARK: Sections
     private var header: some View {
         HStack(spacing: 12) {
-            AsyncImage(url: URL(string: targetItem.imageURL)) { phase in
-                if case .success(let img) = phase {
-                    img.resizable().scaledToFill()
-                } else {
-                    Color(.secondarySystemBackground)
-                }
-            }
+            SDWebImageAsync(
+                url: URL(string: targetItem.imageURL),
+                placeholder: Image(systemName: "photo")
+            )
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 10))
+
 
             VStack(alignment: .leading) {
                 Text(targetItem.title).font(.subheadline).lineLimit(2)
@@ -147,11 +146,34 @@ struct TradeProposalSheet: View {
         Firestore.firestore().collection("trade_proposals").addDocument(
             data: payload
         ) { error in
-            isSubmitting = false
+            DispatchQueue.main.async {
+                self.isSubmitting = false
+            }
             if let error = error {
-                toast = ("Proposal failed:\(error.localizedDescription)", true)
+                DispatchQueue.main.async {
+                    self.toast = ("Proposal failed:\(error.localizedDescription)", true)
+                }
             } else {
-                toast = ("Proposal sent successfully!", true)
+                DispatchQueue.main.async {
+                    self.toast = ("Proposal sent successfully!", true)
+                }
+                
+                // Create notification for the seller
+                let sellerID = targetItem.sellerID
+                let senderName = authService.currentUser?.name ?? "Someone"
+                
+                print("📤 Creating notification for seller: \(sellerID)")
+                print("   Sender: \(senderName)")
+                print("   Product ID: \(productID)")
+                
+                NotificationService.shared.createNotification(
+                    userId: sellerID,
+                    title: "New Trade Proposal",
+                    body: "\(senderName) wants to trade with you",
+                    type: .tradeProposal,
+                    relatedItemId: productID
+                )
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
                     isPresented = false
                 }
@@ -172,15 +194,13 @@ struct OfferSelectableRow: View {
     var body: some View {
         Button(action: onToggle) {
             HStack(spacing: 12) {
-                AsyncImage(url: URL(string: item.imageURL)) { phase in
-                    if case .success(let img) = phase {
-                        img.resizable().scaledToFill()
-                    } else {
-                        Color(.secondarySystemBackground)
-                    }
-                }
+                SDWebImageAsync(
+                    url: URL(string: item.imageURL),
+                    placeholder: Image(systemName: "photo")
+                )
                 .frame(width: 52, height: 52)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
+
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title).font(.subheadline).foregroundColor(

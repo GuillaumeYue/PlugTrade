@@ -2,135 +2,182 @@
 //  HomeScreen.swift
 //  PlugTrade
 //
-// MARK:   Created by Shaquille O Neil on 2025-10-26.
+//  Created by Shaquille O Neil on 2025-10-26.
 //
-
-//
-//  HomeView.swift
-//  PlugTrade
-//
-// MARK:   Created by Evelyne mac on 2025-10-28.
-//
-
-
 
 import SwiftUI
+import SDWebImage
 
 struct HomeScreen: View {
     @EnvironmentObject var productManager: ProductManager
+    @EnvironmentObject var notificationService: NotificationService
     @State private var selectedCategory: Category?
-    @State private var showProfile = false
     @State private var showNotifications = false
+
+    @EnvironmentObject var cartManager: FirebaseCartManager
+
     @ObservedObject private var authManager = AuthService.shared
-    @ObservedObject private var cartManager = FirebaseCartManager()
-  
-    
-    
+
+
     var filteredItems: [Item] {
+        let currentUser = authManager.currentUser?.id
+        
+        
         if let category = selectedCategory, category != .all {
-            return productManager.items.filter { $0.category == category }
+            return productManager.items
+                .filter { $0.category == category }
+                .filter { $0.sellerID != currentUser }
         }
         return productManager.items
+            .filter { $0.sellerID != currentUser}
     }
-    
+
     var body: some View {
+
+        let circleBackgroundLayout: [(Color, CGFloat, CGFloat, CGFloat)] = [
+            (.green.opacity(0.55), 260, -210, -490),
+            (.purple.opacity(0.20), 160,  140, -280),
+            (.blue.opacity(0.18),   120, -140, -120),
+            (.red.opacity(0.15),   100, -180,  180),
+            (.green.opacity(0.18),  150,  160,  280),
+            (.orange.opacity(0.15), 130, -100,  300)
+        ]
+
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    categoriesSection
-                    productFeed
+            ZStack {
+
+                // Background gradient
+                LinearGradient(
+                    colors: [Color.white, Color.gray.opacity(0.05)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+
+                // Background circles
+                ForEach(0..<circleBackgroundLayout.count, id: \.self) { i in
+                    let circle = circleBackgroundLayout[i]
+                    Circle()
+                        .fill(circle.0)
+                        .frame(width: circle.1, height: circle.1)
+                        .offset(x: circle.2, y: circle.3)
                 }
-                .padding(.bottom)
-            }
-            .navigationTitle("Home")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 16) {
-                        Button(action: { showNotifications = true }) {
-                            Image(systemName: "bell.fill")
-                                .foregroundColor(.blue)
-                        }
-                        
-                        NavigationLink(destination: CartView()) {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "cart.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                    .foregroundStyle(Color.blue)
-                                
-                                if cartManager.cartItems.count > 0 {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.red)
-                                            .frame(width: 16, height: 16)
-                                        Text("\(cartManager.cartItems.count)")
-                                            .font(.caption2)
-                                            .foregroundColor(.white)
+
+                // MAIN CONTENT
+                ScrollView {
+                    VStack(spacing: 20) {
+                        categoriesSection
+                        productFeed
+                    }
+                    .padding(.bottom)
+                }
+                .navigationTitle("Home")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        HStack(spacing: 16) {
+
+                            // NOTIFICATIONS — merged + unread badge
+                            Button(action: { showNotifications = true }) {
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "bell.fill")
+                                        .foregroundColor(.blue)
+
+                                    if notificationService.unreadCount > 0 {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 16, height: 16)
+                                            Text("\(notificationService.unreadCount)")
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                        }
+                                        .offset(x: 8, y: -8)
                                     }
-                                    .offset(x: 8, y: -8)
                                 }
                             }
-                        }
 
-                        NavigationLink(destination: ProfileScreen()) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.blue.opacity(0.3))
-                                    .frame(width: 32, height: 32)
-
-                                if let urlString = authManager.currentUser?.profilePictureURL,
-                                   let url = URL(string: urlString) {
-                                    AsyncImage(url: url) { image in
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 32, height: 32)
-                                            .clipShape(Circle())
-                                    } placeholder: {
-                                        ProgressView()
-                                            .frame(width: 32, height: 32)
-                                    }
-                                } else {
-                                    Image(systemName: "person.fill")
+                            // CART — merged full version
+                            NavigationLink(destination: CartView()) {
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "cart.fill")
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 20, height: 20)
-                                        .foregroundColor(.blue)
+                                        .frame(width: 24, height: 24)
+                                        .foregroundStyle(Color.blue)
+
+                                    if cartManager.cartItems.count > 0 {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 16, height: 16)
+                                            Text("\(cartManager.cartItems.count)")
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                        }
+                                        .offset(x: 8, y: -8)
+                                    }
+                                }
+                            }
+
+                            // PROFILE IMAGE
+                            NavigationLink(destination: ProfileScreen()) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.3))
+                                        .frame(width: 32, height: 32)
+
+                                    if let urlString = authManager.currentUser?.profilePictureURL,
+                                       let url = URL(string: urlString) {
+                                        SDWebImageAsync(
+                                            url: url,
+                                            placeholder: Image(systemName: "person.fill")
+                                        )
+                                        .frame(width: 32, height: 32)
+                                        .clipShape(Circle())
+
+                                    } else {
+                                        Image(systemName: "person.fill")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
+                                            .foregroundColor(.blue)
+                                    }
                                 }
                             }
                         }
-
                     }
                 }
-            }
-            .sheet(isPresented: $showNotifications) {
-                NotificationsView()
+                .sheet(isPresented: $showNotifications) {
+                    NotificationsView()
+                        .environmentObject(notificationService)
+                }
             }
         }
     }
-    
+
+    // MARK: - Categories
     var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Categories")
                 .font(.headline)
                 .padding(.horizontal)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    CategoryCircle(icon: "square.grid.2x2", name: "All", category: .all, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "laptopcomputer", name: "Laptops", category: .laptop, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "iphone", name: "Mobile", category: .mobile, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "applewatch", name: "Watches", category: .watch, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "headphones", name: "Headsets", category: .headsets, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "ipad", name: "iPads", category: .ipad, selectedCategory: $selectedCategory)
-                    CategoryCircle(icon: "ellipsis.circle", name: "Other", category: .other, selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "square.grid.2x2", name: "All",      category: .all,      selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "laptopcomputer",   name: "Laptops",  category: .laptop,   selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "iphone",           name: "Mobile",   category: .mobile,   selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "applewatch",       name: "Watches",  category: .watch,    selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "headphones",       name: "Headsets", category: .headsets, selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "ipad",             name: "iPads",    category: .ipad,     selectedCategory: $selectedCategory)
+                    CategoryCircle(icon: "ellipsis.circle",  name: "Other",    category: .other,    selectedCategory: $selectedCategory)
                 }
                 .padding(.horizontal)
             }
         }
     }
-    
+
+    // MARK: - Product Feed
     var productFeed: some View {
         VStack(spacing: 16) {
             if productManager.isLoading {
@@ -141,38 +188,278 @@ struct HomeScreen: View {
                     .foregroundColor(.gray)
                     .padding()
             } else {
+               
                 ForEach(filteredItems.prefix(10)) { item in
                     ProductPost(item: item)
+                        .background(Color.white.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.12))
+                        )
+                        .padding(.horizontal)
                 }
             }
         }
     }
 }
 
+// MARK: - Product Card
+struct ProductPost: View {
+    let item: Item
+
+    @ObservedObject private var authManager = AuthService.shared
+    @EnvironmentObject var favoritesManager: FirebaseFavoritesManager
+    @State private var sellerImageURL: String?
+    @State private var rotate = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            
+            productImageSection
+                .overlay(alignment: .bottomTrailing){
+                    postActions
+                }
+            Text(item.title)
+                .font(.headline)
+                .lineLimit(2)
+            HStack{
+                sellerRow
+                Spacer()
+                HStack(spacing: 6) {
+                    if(item.itemType == .forSale){Chip(text: "For Sale")}
+                    else {Chip(text: "For Trade")}
+                    
+                    Chip(text: item.category.rawValue.capitalized)
+                }
+            }
+          
+            priceOrTradeBadge
+            
+            if item.itemType == .forTrade {
+                DisclosureGroup {
+                    let wants = item.lookingfor ?? []
+                    if wants.isEmpty {
+                        Text("No specific needs listed")
+                    } else {
+                        ForEach(wants, id: \.self) { want in
+                            Text(want).foregroundColor(.secondary)
+                        }
+                    }
+                } label: {
+                        Text("Looking For")
+                    
+                }
+            }
+            
+           
+            
+ 
+        }
+        .padding(12)
+        .background(cardBackground)
+        .overlay(cardBorder)
+        
+        .shadow(color: Color.blue.opacity(0.4), radius: 20)
+    }
+    
+    private var sellerRow: some View {
+        HStack{
+            NavigationLink(destination: PublicProfileView(userID: item.sellerID)) {
+                    sellerAvatar
+                    sellerInfo
+
+               
+            }
+            
+        }
+       
+    }
+
+    private var sellerAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(Color.blue.opacity(0.3))
+                .frame(width: 32, height: 32)
+
+            if let sellerImageURL = sellerImageURL,
+               let url = URL(string: sellerImageURL) {
+
+                SDWebImageAsync(
+                    url: url,
+                    placeholder: Image(systemName: "person.fill")
+                )
+                .scaledToFill()
+                .frame(width: 32, height: 32)
+                .clipShape(Circle())
+
+            } else {
+                Image(systemName: "person.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(.blue)
+            }
+        }
+        .onAppear {
+          
+                authManager.fetchSeller(id: item.sellerID) { url in
+                    sellerImageURL = url
+                }
+            
+        }
+    }
+
+
+    private var sellerInfo: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(item.sellerName)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            Text(item.location)
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+    }
+
+    private var productImageSection: some View {
+        NavigationLink(destination: productDestination) {
+            SDWebImageAsync(
+                url: URL(string: item.imageURL),
+                placeholder: Image(systemName: "photo")
+            )
+            .frame(height: 180)
+            .clipped()
+            .cornerRadius(16)
+        }
+    }
+
+    @ViewBuilder
+    private var productDestination: some View {
+        if item.itemType == .forTrade {
+            TradeDetailView(item: item)
+        } else {
+            DetailView(item: item)
+        }
+    }
+
+  
+
+    @ViewBuilder
+    private var priceOrTradeBadge: some View {
+        if item.itemType == .forSale {
+            HStack(spacing: 6) {
+                Image(systemName: "cart.badge.plus.fill")
+                    .font(.title3)
+                    .foregroundColor(.white)
+
+                Text("$\(item.price ?? 0.0, specifier: "%.2f")")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.blue.gradient)
+            )
+
+        } else {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.2.circlepath")
+                    .font(.title3)
+                    .foregroundColor(.white)
+                    .rotationEffect(.degrees(rotate ? 360 : 0))
+                    .animation(.linear(duration: 2).repeatForever(autoreverses: false), value: rotate)
+                    .onAppear { rotate = true }
+
+                Text("For Trade")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.green.gradient)
+            )
+        }
+    }
+
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 24)
+            .fill(Color.white.opacity(0.85))
+    }
+
+    
+    // MARK: - Favorite Button
+    private var postActions: some View {
+        Button(action: {
+            favoritesManager.toggleFavorite(item: item)
+        }) {
+            VStack {
+                Image(systemName: favoritesManager.isFavorite(item: item) ? "heart.fill" : "heart")
+                    .font(.system(size: 28))
+                    .foregroundColor(favoritesManager.isFavorite(item: item) ? .red : .gray)
+
+                Text(favoritesManager.isFavorite(item: item) ? "Saved" : "Save")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            .frame(width: 80, height: 60)
+            .contentShape(Rectangle())   // better tap area
+        }
+        .buttonStyle(.plain)
+    }
+
+}
+
+
+
+private var cardBorder: some View {
+    RoundedRectangle(cornerRadius: 24)
+        .stroke(
+            LinearGradient(
+                colors: [Color.purple, Color.blue],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            lineWidth: 1.2
+        )
+}
+
+
+
+
+
+// MARK: - Category Circle
 struct CategoryCircle: View {
     let icon: String
     let name: String
     let category: Category
     @Binding var selectedCategory: Category?
-    
+
     var isSelected: Bool {
         selectedCategory == category || (selectedCategory == nil && category == .all)
     }
-    
+
     var body: some View {
-        Button(action: {
+        Button {
             selectedCategory = category == .all ? nil : category
-        }) {
+        } label: {
             VStack(spacing: 8) {
                 Circle()
                     .fill(isSelected ? Color.blue : Color.blue.opacity(0.2))
-                    .frame(width: 70, height: 70)
+                    .frame(width: 50, height: 50)
                     .overlay(
                         Image(systemName: icon)
                             .font(.system(size: 28))
                             .foregroundColor(isSelected ? .white : .blue)
                     )
-                
+
                 Text(name)
                     .font(.caption)
                     .foregroundColor(isSelected ? .blue : .primary)
@@ -181,189 +468,149 @@ struct CategoryCircle: View {
     }
 }
 
-struct ProductPost: View {
-    let item: Item
-    
-    @ObservedObject private var authManager = AuthService.shared
-    @State private var sellerImageURL: String?
-    @State private var rotate = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            NavigationLink(destination: PublicProfileView(userID: item.sellerID)){
-                HStack {
-                    ZStack {
-                        Circle()
-                            .fill(Color.blue.opacity(0.3))
-                            .frame(width: 32, height: 32)
-
-                        if let urlString = sellerImageURL,
-                           let url = URL(string: urlString) {
-                            AsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(Circle())
-                            } placeholder: {
-                                ProgressView()
-                                    .frame(width: 32, height: 32)
-                            }
-                        } else {
-                            Image(systemName: "person.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
-                                .foregroundColor(.blue)
-                        }
-                    }.onAppear {
-                        authManager.fetchSeller(id: item.sellerID) { url in
-                                       sellerImageURL = url
-                                   }
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.sellerName)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                        Text(item.location)
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.horizontal)
-            }
-           
-            
-            
-            NavigationLink(destination:{
-                // MARK: adjusted by S.Neil
-                if item.itemType == .forTrade {
-                    TradeItemCard(item: item, onPropose: {})
-                } else {
-                    DetailView(item: item)
-                }
-                // MARK: end of adjustment
-            }) {
-                AsyncImage(url: URL(string: item.imageURL)) { phase in
-                    switch phase {
-                    case .empty:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 250)
-                            .overlay(ProgressView())
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 250)
-                            .clipped()
-                    case .failure:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 250)
-                            .overlay(Image(systemName: "photo"))
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-                .overlay(
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Text(item.title)
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(8)
-                                .background(Color.black.opacity(0.6))
-                                .cornerRadius(8)
-                            Spacer()
-                        }
-                        .padding()
-                    }
-                )
-            }
-            
-            
-         
-            
-            //MARK: BADGE S.Neil
-            HStack {
-                if item.itemType == .forSale {
-                    Text("$\(item.price ?? 0.0, specifier: "%.0f")")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.blue)
-                }else{
-                    
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.2.circlepath")
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .rotationEffect(.degrees(rotate ? 360 : 0))
-                            .animation(.linear(duration: 2).repeatForever(autoreverses: false), value: rotate)
-                            .onAppear { rotate = true }
-
-                        Text("For Trade")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.green.gradient)
-                            .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 2)
-                    )
-
-                  
-                }
-               
-                
-                Spacer()
-                
-                HStack(spacing: 16) {
-                    Image(systemName: "heart")
-                    Image(systemName: "message")
-                    Image(systemName: "cart")
-                }
-                .font(.title3)
-            }
-            .padding(.horizontal)
-            
-            Divider()
-        }
-    }
-}
+// MARK: - Notifications Sheet + Views
+// (unchanged because they were already correct)
 
 struct NotificationsView: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject private var notificationService: NotificationService
+    @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var productManager: ProductManager
     
+    @State private var selectedNotification: AppNotification?
+    @State private var showDetailSheet = false
+
     var body: some View {
         NavigationView {
-            List {
-                Text("No notifications yet")
-                    .foregroundColor(.gray)
+            Group {
+                if notificationService.notifications.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "bell.slash")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                        Text("No notifications yet")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(notificationService.notifications) { notification in
+                            NotificationRow(notification: notification)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    selectedNotification = notification
+                                    showDetailSheet = true
+                                    
+                                    if !notification.isRead, let id = notification.id {
+                                        notificationService.markAsRead(id)
+                                    }
+                                }
+                        }
+                    }
+                }
             }
             .navigationTitle("Notifications")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !notificationService.notifications.isEmpty {
+                        Button("Mark All Read") {
+                            notificationService.markAllAsRead()
+                        }
+                        .font(.subheadline)
                     }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .sheet(isPresented: $showDetailSheet) {
+                if let notification = selectedNotification {
+                    NotificationDetailSheet(
+                        notification: notification,
+                        isPresented: $showDetailSheet
+                    )
+                    .environmentObject(authService)
+                    .environmentObject(productManager)
+                    .environmentObject(notificationService)
                 }
             }
         }
     }
 }
 
-struct HomeView_Previews: PreviewProvider {
+struct NotificationRow: View {
+    let notification: AppNotification
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: iconForType(notification.type))
+                .font(.title3)
+                .foregroundColor(colorForType(notification.type))
+                .frame(width: 40, height: 40)
+                .background(colorForType(notification.type).opacity(0.1))
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(notification.title)
+                    .font(.headline)
+                    .foregroundColor(notification.isRead ? .secondary : .primary)
+                
+                Text(notification.body)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+                
+                Text(notification.timestamp, style: .relative)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            if !notification.isRead {
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 8, height: 8)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func iconForType(_ type: NotificationType) -> String {
+        switch type {
+        case .tradeProposal: return "arrow.triangle.swap"
+        case .tradeAccepted: return "checkmark.circle.fill"
+        case .tradeRejected: return "xmark.circle.fill"
+        case .message:       return "message.fill"
+        case .other:         return "bell.fill"
+        case .purchase:      return "cart.fill"
+        }
+    }
+    
+    private func colorForType(_ type: NotificationType) -> Color {
+        switch type {
+        case .tradeProposal: return .blue
+        case .tradeAccepted: return .green
+        case .tradeRejected: return .red
+        case .message:       return .purple
+        case .other:         return .gray
+        case .purchase:      return .orange
+        }
+    }
+}
+
+
+// MARK: - Preview
+struct HomeScreen_Previews: PreviewProvider {
     static var previews: some View {
-        HomeScreen()
-            .environmentObject(ProductManager.shared)
+        NavigationStack {
+            HomeScreen()
+                .environmentObject(ProductManager.shared)
+                .environmentObject(NotificationService.shared)
+                .environmentObject(FirebaseCartManager.shared)
+                .environmentObject(FirebaseFavoritesManager.shared)
+        }
     }
 }

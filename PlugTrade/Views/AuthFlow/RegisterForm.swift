@@ -15,89 +15,127 @@ struct RegisterForm: View {
     @StateObject private var authManager = AuthService.shared
     
     var body: some View {
-        VStack {
-            Text("PlugTrade")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
             
-            Form {
-                Section("Create Account") {
-                    // MARK: Profile Image Picker
-                    HStack {
+            VStack {
+                Spacer()
+                    .frame(height: 10)
+                Image("back3")
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(Circle())
+                    .frame(width: 150, height: 150)
+                
+                Form {
+                    Section(header:
+                                HStack{
                         Spacer()
-                        PhotosPicker(selection: $selectedImage, matching: .images) {
-                            if let data = imageData, let uiImage = UIImage(data: data) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 120, height: 120)
-                                    .clipShape(Circle())
+                        Image(systemName: "archivebox")
+                        Text("REGISTER")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                        Spacer()
+                            
+                    }) {
+                        // MARK: Profile Image Picker
+                        HStack {
+                            Spacer()
+                            PhotosPicker(selection: $selectedImage, matching: .images) {
+                                if let data = imageData, let uiImage = UIImage(data: data) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 120, height: 120)
+                                        .clipShape(Circle())
+                                } else {
+                                    Image(systemName: "person.crop.circle.fill")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 120, height: 120)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            Spacer()
+                        }
+                        .padding()
+                        .onChange(of: selectedImage) { newValue in
+                            Task {
+                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                    imageData = data
+                                }
+                            }
+                        }
+                        
+                        // MARK: Name Field
+                        TextField("Display Name", text: $name)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .autocapitalization(.none)
+                        
+                        // MARK: Email Field
+                        TextField("Email", text: $email)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .autocapitalization(.none)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
+                            .keyboardType(.emailAddress)
+                        
+                        // MARK: Password Field
+                        SecureField("Password", text: $password)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    // MARK: Error message
+                    if let error = error {
+                        Text(error)
+                            .foregroundColor(.red)
+                    }
+                    
+                    // MARK: Register Button
+                    Section{
+                        Button(action: registerUser) {
+                            if isRegistering {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .frame(width: 200)
                             } else {
-                                Image(systemName: "person.crop.circle.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 120, height: 120)
-                                    .foregroundColor(.gray)
+                                Text("Register")
+                                    .frame(width: 200)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(15)
                             }
                         }
-                        Spacer()
-                    }
-                    .padding()
-                    .onChange(of: selectedImage) { newValue in
-                        Task {
-                            if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                                imageData = data
-                            }
-                        }
-                    }
-                    
-                    // MARK: Name Field
-                    TextField("Display Name", text: $name)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .autocapitalization(.none)
-                    
-                    // MARK: Email Field
-                    TextField("Email", text: $email)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .autocapitalization(.none)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
-                        .keyboardType(.emailAddress)
-                    
-                    // MARK: Password Field
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-                
-                // MARK: Error message
-                if let error = error {
-                    Text(error)
-                        .foregroundColor(.red)
-                }
-                
-                // MARK: Register Button
-                Button(action: registerUser) {
-                    if isRegistering {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .frame(width: 200)
-                    } else {
-                        Text("Register")
-                            .frame(width: 200)
-                            .padding()
+                        .disabled(email.isEmpty || password.isEmpty || name.isEmpty || isRegistering)
+                        .padding(.horizontal)
+                        .disabled(email.isEmpty || password.isEmpty)
+                        .font(.headline)
+                            .frame(maxWidth: .infinity)
                             .background(Color.blue)
                             .foregroundColor(.white)
-                            .cornerRadius(15)
+                            .cornerRadius(10)
+                            .listRowBackground(Color.clear)
                     }
+                    
                 }
-                .disabled(email.isEmpty || password.isEmpty || name.isEmpty || isRegistering)
-                .padding()
+                .frame(width: 350, height: 550)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .scrollContentBackground(.hidden)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color.white.opacity(0.8), lineWidth: 1)
+                        )
+                
+                Spacer()
             }
-        }
-        .alert("Registration Successful!", isPresented: $showSuccessAlert) {
-            Button("OK", role: .cancel) { }
-        }
+            .alert("Registration Successful!", isPresented: $showSuccessAlert) {
+                Button("OK", role: .cancel) { }
+            }
+        
+        
+        
+        
     }
     
     // MARK: - Register function

@@ -18,6 +18,7 @@ struct ListProductScreen: View {
     @State private var selectedImage: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var quantity = ""
+    @State private var lookingfor = ""
     @State private var selectedType: ItemTypeEnum = .forSale
     @State private var showingAlert = false
     @State private var alertMessage = ""
@@ -68,6 +69,21 @@ struct ListProductScreen: View {
                         TextField("Price", text: $price)
                             .keyboardType(.decimalPad)
                     }
+                    if selectedType == .forTrade {
+                        TextField("Looking For (comma separated)", text: $lookingfor)
+                            .onChange(of: lookingfor) { newValue in
+                                let parts = newValue.split(separator: ",").map{ $0.trimmingCharacters(in: .whitespaces)}
+                                    .filter { !$0.isEmpty }
+                                
+                          if parts.count > 3 {
+                              let limit = parts.prefix(3).joined(separator: ", ")
+                              lookingfor = limit
+                              alertMessage = "Please enter no more than 3 items"
+                              showingAlert = true
+                                    
+                                }
+                            }
+                    }
                     // MARK: end of adjustment
                     
                     TextField("Quantity", text: $quantity)
@@ -103,6 +119,13 @@ struct ListProductScreen: View {
                             }
                         }
                     }
+                    .font(.headline)
+                    .frame(width: 350, height: 50 )
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .listRowBackground(Color.clear)
                     .disabled(
                         // MARK: adjusted by S.Neil
                         selectedType == .forSale
@@ -110,7 +133,15 @@ struct ListProductScreen: View {
                        
                         : (isPosting || title.isEmpty ||  location.isEmpty || quantity.isEmpty))
                     // MARK: end of adjustment
-                }
+                }.frame(width: 350, height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .scrollContentBackground(.hidden)
+                            .background(.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 25))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.white.opacity(0.8), lineWidth: 1)
+                            )
             }
             .navigationTitle("Post New Item")
             .alert("Post Status", isPresented: $showingAlert) {
@@ -133,6 +164,21 @@ struct ListProductScreen: View {
     }
     
     private func postItem() {
+        
+        
+        // Turn the text into an array
+        var lookingForArray = lookingfor
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        if lookingForArray.count > 3 {
+            lookingForArray = Array(lookingForArray.prefix(3))
+            alertMessage = "You can only add up to 3 items in 'Looking For'. Extra items were removed."
+            showingAlert = true
+        }
+
+        
         
         if selectedType == .forSale, price.isEmpty {
             alertMessage = "Please enter a valid Price"
@@ -160,6 +206,7 @@ struct ListProductScreen: View {
             category: selectedCategory,
             image: imageData,
             quantity: quantityValue,
+            lookingFor: lookingForArray,
             itemType: selectedType
         ) { result in
             isPosting = false

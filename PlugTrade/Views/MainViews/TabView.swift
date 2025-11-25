@@ -9,8 +9,8 @@ import SwiftUI
 
 struct MainTabView: View {
     
-    @StateObject private var cartManager = FirebaseCartManager()
-    @StateObject private var productManager = ProductManager.shared
+    @EnvironmentObject private var cartManager: FirebaseCartManager
+    @EnvironmentObject private var productManager: ProductManager
     
     var body: some View {
         TabView {
@@ -19,10 +19,10 @@ struct MainTabView: View {
                     Image(systemName: "house.fill")
                     Text("Home")
                 }
-            SearchScreen()
+            SalesItemScreen()
                 .tabItem {
-                    Image(systemName: "magnifyingglass")
-                    Text("Search")
+                    Image(systemName: "dollarsign")
+                    Text("Sales")
                 }
             ListProductScreen()
                 .tabItem {
@@ -42,12 +42,12 @@ struct MainTabView: View {
             
            
         }
-        .environmentObject(cartManager)
-        .environmentObject(productManager)
+    
     }
 }
 
-#Preview {
-    MainTabView()
-       
-}
+//#Preview {
+//    MainTabView()
+//        
+//       
+//}

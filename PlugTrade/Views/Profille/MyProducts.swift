@@ -8,24 +8,32 @@
 import SwiftUI
 import AuthenticationServices
 
+enum ProductTab: String, CaseIterable{
+    case Sale
+    case Trade
+    case Favorites
+}
+
 struct MyProducts: View {
-    @State private var showsaleproducts: Bool = true
+    @State private var selectedTab: ProductTab = .Sale
 
     var body: some View {
         VStack {
-            Picker("", selection: $showsaleproducts) {
-                Text("Products for sale").tag(true)
-                Text("Products for trade").tag(false)
+            Picker("", selection: $selectedTab) {
+                Text("Products for sale").tag(ProductTab.Sale)
+                Text("Products for trade").tag(ProductTab.Trade)
+                Text("Favorites").tag(ProductTab.Favorites)
             }
             .pickerStyle(.segmented)
             .padding()
 
-            if showsaleproducts {
+            switch selectedTab {
+            case .Sale:
                 ProductsForSale()
-                    .environmentObject(ProductManager())
-            } else {
+            case .Trade:
                 ProductsForTrade()
-                    .environmentObject(ProductManager())
+            case .Favorites:
+                UserFavoritesProducts()
             }
         }
     }
@@ -33,7 +41,7 @@ struct MyProducts: View {
 
 #Preview {
     MyProducts()
-        .environmentObject(ProductManager())
-        .environmentObject(AuthService())
+        .environmentObject(ProductManager.shared)
+        .environmentObject(AuthService.shared)
 }
 

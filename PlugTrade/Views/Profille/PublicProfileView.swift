@@ -2,7 +2,7 @@
 //  PublicProfileView.swift
 //  PlugTrade
 //
-// MARK:  Created by Shaquille O Neil on 2025-11-12.
+//  Created by Shaquille O Neil on 2025-11-12.
 //
 
 import SwiftUI
@@ -15,65 +15,91 @@ struct PublicProfileView: View {
     @State var sellerName: String = ""
     @State var sellerImage = ""
     @State private var showsaleproducts: Bool = true
-    @StateObject private var productManager = ProductManager.shared
-    
+    @StateObject private var sellerProducts = PublicSellerProducts()
+    @State private var showFull: Bool = false
     
     var body: some View {
-        
-        VStack{
+        VStack(spacing: 16) {
+
+            // MARK: - Profile Image
             if let url = URL(string: sellerImage), !sellerImage.isEmpty {
-                            AsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 120, height: 120)
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
-                            } placeholder: {
-                                ProgressView()
-                                    .frame(width: 120, height: 120)
-                            }
+                
+                SDWebImageAsync(
+                    url: URL(string: sellerImage),
+                    placeholder: Image(systemName: "person.circle.fill")
+                )
+                .frame(width: 120, height: 150)
+                .clipShape(Circle())
+                .aspectRatio(contentMode: .fit)
+                .onTapGesture {showFull.toggle()}
+                .fullScreenCover(isPresented: $showFull) {
+                    ZStack {
+                           Color.black.ignoresSafeArea()
+
+                           SDWebImageAsync(
+                               url: URL(string: sellerImage),
+                               placeholder: Image(systemName: "photo")
+                           )
+                           .scaledToFit()
+                           .onTapGesture { showFull = false }
+                       }
+                }
+                .overlay(
+                    Circle()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                )
+
             } else {
                 Image(systemName: "person.circle.fill")
                     .resizable()
                     .scaledToFill()
                     .frame(width: 120, height: 120)
                     .foregroundColor(.gray.opacity(0.6))
-                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                    )
             }
-            Text("\(sellerName)")
+
+            // MARK: - Name
+            Text(sellerName)
                 .font(.title)
+                .fontWeight(.bold)
+
             Divider()
-            Section(header: Text("Products")){
+
+            // MARK: - Product Toggle
+            Section(header: Text("Products")) {
                 Picker("", selection: $showsaleproducts) {
                     Text("Products for sale").tag(true)
                     Text("Products for trade").tag(false)
                 }
                 .pickerStyle(.segmented)
-                .padding()
 
                 if showsaleproducts {
-                    PublicProductsForSale(sellerID: userID)
-                        .environmentObject(productManager)
+                    PublicProductsForSale(fetcher: sellerProducts, sellerID: userID)
                 } else {
-                    PublicProductsForTrade(sellerID: userID)
-                        .environmentObject(productManager)
+                    PublicProductsForTrade(fetcher: sellerProducts, sellerID: userID)
                 }
+
+
             }
         }
-        .navigationTitle(sellerName.isEmpty ? "Profile" : sellerName)
-        .onAppear{
-            authManager.fetchSellerProfile(userID: userID){
-                name, url in
-                sellerName = name
-                sellerImage = url
-                
-            }
+        .padding(.top, 50)
+        .ignoresSafeArea(.container, edges: .top)
+        .onAppear {
+            authManager.fetchSellerProfile(userID: userID) { name, url in
+                   sellerName = name
+                   sellerImage = url
+               }
+            sellerProducts.load(for: userID)
         }
     }
 }
 
+// PREVIEW
 #Preview {
     PublicProfileView(userID: "iYje6iZ2snZ9ILWzxhPeGBxAp1F2")
-        
+        .environmentObject(ProductManager.shared)
 }

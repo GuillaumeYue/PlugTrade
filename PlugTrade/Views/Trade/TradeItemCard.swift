@@ -13,6 +13,8 @@ struct TradeItemCard: View {
 
     @State private var sellerAvatarURL: String? = nil
     @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var productManager: ProductManager
+    @EnvironmentObject private var notificationService: NotificationService
     @State private var sendTrade = false
     
 
@@ -22,27 +24,17 @@ struct TradeItemCard: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            AsyncImage(url: URL(string: item.imageURL)) { phase in
-                switch phase {
-                case .empty:
-                    ZStack {
-                        Rectangle().fill(Color(.secondarySystemBackground))
-                        ProgressView()
-                    }
-                case .success(let image):
-                    image.resizable().scaledToFill()
-                case .failure:
-                    ZStack {
-                        Rectangle().fill(Color(.secondarySystemBackground))
-                        Image(systemName: "photo")
-                    }
-                @unknown default:
-                    EmptyView()
-                }
+            NavigationLink(destination: TradeDetailView(item: item)) {
+                SDWebImageAsync(
+                    url: URL(string: item.imageURL),
+                    placeholder: Image(systemName: "photo")
+                )
+                .frame(height: 180)
+                .clipped()
+                .cornerRadius(16)
+
             }
-            .frame(height: 180)
-            .clipped()
-            .cornerRadius(16)
+            .buttonStyle(.plain)
 
             Text(item.title)
                 .font(.headline)
@@ -66,38 +58,58 @@ struct TradeItemCard: View {
                     Chip(text: item.category.rawValue.capitalized)
                 }
             }
-//            Button(action: onPropose) {
-//                Text("Send Request")
-//                    .frame(maxWidth: .infinity)
-//                    .padding(.vertical, 12)
-//            }
-//            .buttonStyle(.borderedProminent)
-//            .cornerRadius(12)
-            Button("Send Request"){
+            Button("Send Request") {
                 sendTrade = true
             }
             .buttonStyle(.borderedProminent)
             .cornerRadius(12)
-            .sheet(isPresented: $sendTrade){
+            .sheet(isPresented: $sendTrade) {
                 TradeProposalSheet(targetItem: item, isPresented: $sendTrade)
+                    .environmentObject(authService)
+                    .environmentObject(productManager)
+                    .environmentObject(notificationService)
             }
+
+            DisclosureGroup {
+                let wants = item.lookingfor ?? []
+                if wants.isEmpty {
+                    Text("No specific needs listed")
+                } else {
+                    ForEach(wants, id: \.self) { want in
+                        Text(want).foregroundColor(.secondary)
+                    }
+                }
+            } label: {
+                    Text("Looking For")
+                
+            }
+
+           
         }
-        .padding(14)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(18)
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color.white.opacity(0.12))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.purple, Color.blue],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.2
+                )
+        )
+        .shadow(color: Color.blue.opacity(0.15), radius: 12)
         .onAppear {
-            
-            // check the curren user
-//            if let currentUser = authService.currentUser {
-//                authService.fetchSeller(id: currentUser.id ?? item.sellerID) { url in
-//                    sellerAvatarURL = url
-//                }
-//            }else {
+            if sellerAvatarURL == nil{
                 authService.fetchSeller(id: item.sellerID) { url in
                     sellerAvatarURL = url
                 }
-//            }
-//            
+            }
+                     
             
         }
     }
@@ -110,10 +122,10 @@ struct TradeItemCard: View {
                 SampleData.items.first { $0.itemType == .forTrade }
                 ?? SampleData.items[0]
             return TradeItemCard(item: i, onPropose: {})
-                .environmentObject(AuthService())
+                .environmentObject(AuthService.shared)
                 .padding()
                 .previewLayout(.sizeThatFits)
-                .environmentObject(ProductManager())
+                .environmentObject(ProductManager.shared)
         }
     }
 #endif

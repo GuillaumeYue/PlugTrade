@@ -3,9 +3,11 @@ import SwiftUI
 struct TradeScreen: View {
     @EnvironmentObject private var productManager: ProductManager
     @EnvironmentObject private var authService: AuthService
-
+    @EnvironmentObject var notificationService: NotificationService
+    @EnvironmentObject var cartManager: FirebaseCartManager
     @State private var searchText: String = ""
     @State private var selectedCategory: Category = .all
+    @State private var showNotifications = false
 
     private struct ProposalWrapper: Identifiable {
         let id = UUID()
@@ -15,15 +17,122 @@ struct TradeScreen: View {
 
     init() {}
     var body: some View {
+        let circleBackgroundLayout: [(Color, CGFloat, CGFloat, CGFloat)] = [
+            (.green.opacity(0.55), 260, -210, -490),
+            (.purple.opacity(0.20), 160,  140, -280),
+            (.blue.opacity(0.18),   120, -140, -120),
+            (.red.opacity(0.15),   100, -180,  180),
+            (.green.opacity(0.18),  150,  160,  280),
+            (.orange.opacity(0.15), 130, -100,  300)
+        ]
         NavigationView {
-            VStack(spacing: 0) {
-                signInBanner
-                searchBar
-                categoryChips
-                contentList
+            ZStack{
+                LinearGradient(
+                       colors: [Color.white, Color.gray.opacity(0.05)],
+                       startPoint: .topLeading,
+                       endPoint: .bottomTrailing
+                   )
+                   .ignoresSafeArea()
+
+                  
+                   ForEach(0..<circleBackgroundLayout.count, id: \.self) { i in
+                       let circle = circleBackgroundLayout[i]
+                       Circle()
+                           .fill(circle.0)
+                           .frame(width: circle.1, height: circle.1)
+                           .offset(x: circle.2, y: circle.3)
+                   }
+                
+                VStack(spacing: 0) {
+                    searchBar
+                    categoryChips
+                    contentList
+                }
+                .navigationTitle("Trade")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        HStack(spacing: 16) {
+
+                            // NOTIFICATIONS — merged + unread badge
+                            Button(action: { showNotifications = true }) {
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "bell.fill")
+                                        .foregroundColor(.blue)
+
+                                    if notificationService.unreadCount > 0 {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 16, height: 16)
+                                            Text("\(notificationService.unreadCount)")
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                        }
+                                        .offset(x: 8, y: -8)
+                                    }
+                                }
+                            }
+
+                            // CART — merged full version
+                            NavigationLink(destination: CartView()) {
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "cart.fill")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 24, height: 24)
+                                        .foregroundStyle(Color.blue)
+
+                                    if cartManager.cartItems.count > 0 {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 16, height: 16)
+                                            Text("\(cartManager.cartItems.count)")
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                        }
+                                        .offset(x: 8, y: -8)
+                                    }
+                                }
+                            }
+
+                            // PROFILE IMAGE
+                            NavigationLink(destination: ProfileScreen()) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.3))
+                                        .frame(width: 32, height: 32)
+
+                                    if let urlString = authService.currentUser?.profilePictureURL,
+                                       let url = URL(string: urlString) {
+                                        SDWebImageAsync(
+                                            url: url,
+                                            placeholder: Image(systemName: "person.fill")
+                                        )
+                                        .frame(width: 32, height: 32)
+                                        .clipShape(Circle())
+
+                                    } else {
+                                        Image(systemName: "person.fill")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .sheet(isPresented: $showNotifications) {
+                    NotificationsView()
+                        .environmentObject(notificationService)
+                }
+                
+                
             }
-            .navigationTitle("Trade")
-            .navigationBarTitleDisplayMode(.large)
+            
         }
         .sheet(item: $sheetWrapper) { wrapper in
             TradeProposalSheet(
@@ -40,26 +149,6 @@ struct TradeScreen: View {
         }
     }
 
-    // MARK: Sections
-    private var signInBanner: some View {
-        Group {
-            if authService.currentUser == nil {
-                HStack(spacing: 12) {
-                    Image(systemName: "person.crop.circle.badge.exclam")
-                        .imageScale(.large)
-                    Text("Sign in to start trading").font(.subheadline)
-                    Spacer()
-                    NavigationLink(destination: AuthGate()) {
-                        Text("Sign in").font(.subheadline).bold()
-                    }
-                }
-                .padding(12)
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(12)
-                .padding([.horizontal, .top])
-            }
-        }
-    }
 
     private var searchBar: some View {
         HStack(spacing: 8) {
@@ -76,9 +165,15 @@ struct TradeScreen: View {
             }
         }
         .padding(12)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
         .padding(.horizontal)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 10, y: 4)
+        .frame(width: 390)
         .padding(.top, authService.currentUser == nil ? 8 : 16)
     }
 
@@ -110,14 +205,14 @@ struct TradeScreen: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 14) {
-                        ForEach(items) { item in
+                        ForEach(items.filter{$0.sellerID != authService.currentUser!.id}) { item in
                             TradeItemCard(item: item) {
                                 productManager.fetchUserProducts()
                                 sheetWrapper = ProposalWrapper(item: item)
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 6)
+                    
                     }
                 }
             }
@@ -137,6 +232,7 @@ struct TradeScreen: View {
             }
     }
 }
+
 
 // iOS16 可选 detents helper
 private extension View {
@@ -165,10 +261,14 @@ struct TradeScreen_Previews: PreviewProvider {
     static var previews: some View {
         let pm = ProductManager()
         pm.items = SampleData.items
-        let auth = AuthService()
+        
         return TradeScreen()
-            .environmentObject(pm)
-            .environmentObject(auth)
+            .environmentObject(ProductManager.shared)
+            .environmentObject(AuthService.shared)
+            .environmentObject(NotificationService.shared)
+            .environmentObject(FirebaseCartManager.shared)
+
+
     }
 }
 #endif

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		542250102EAC7FD100969F8A /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5422500F2EAC7FD100969F8A /* FirebaseFirestore */; };
 		542250122EAC7FD600969F8A /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 542250112EAC7FD600969F8A /* FirebaseCore */; };
+		542514D02ECD6D8200848F9F /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = 542514CF2ECD6D8200848F9F /* SDWebImage */; };
+		542514D22ECD6D8200848F9F /* SDWebImageMapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 542514D12ECD6D8200848F9F /* SDWebImageMapKit */; };
 		54F6E2F42EB3E2C900E61528 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 54F6E2F32EB3E2C900E61528 /* FirebaseAuth */; };
 		54F6E2F62EB3E37600E61528 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 54F6E2F52EB3E37600E61528 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
@@ -17,9 +19,22 @@
 		54224FFB2EAC73F100969F8A /* PlugTrade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlugTrade.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		54FBA5C12ED4BAFC0092DE1A /* Exceptions for "PlugTrade" folder in "PlugTrade" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 54224FFA2EAC73F100969F8A /* PlugTrade */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		54224FFD2EAC73F100969F8A /* PlugTrade */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				54FBA5C12ED4BAFC0092DE1A /* Exceptions for "PlugTrade" folder in "PlugTrade" target */,
+			);
 			path = PlugTrade;
 			sourceTree = "<group>";
 		};
@@ -29,9 +44,11 @@
 		54224FF82EAC73F100969F8A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				542514D02ECD6D8200848F9F /* SDWebImage in Frameworks */,
 				542250122EAC7FD600969F8A /* FirebaseCore in Frameworks */,
 				54F6E2F62EB3E37600E61528 /* FirebaseStorage in Frameworks */,
 				54F6E2F42EB3E2C900E61528 /* FirebaseAuth in Frameworks */,
+				542514D22ECD6D8200848F9F /* SDWebImageMapKit in Frameworks */,
 				542250102EAC7FD100969F8A /* FirebaseFirestore in Frameworks */,
 			);
 		};
@@ -84,6 +101,8 @@
 				542250112EAC7FD600969F8A /* FirebaseCore */,
 				54F6E2F32EB3E2C900E61528 /* FirebaseAuth */,
 				54F6E2F52EB3E37600E61528 /* FirebaseStorage */,
+				542514CF2ECD6D8200848F9F /* SDWebImage */,
+				542514D12ECD6D8200848F9F /* SDWebImageMapKit */,
 			);
 			productName = PlugTrade;
 			productReference = 54224FFB2EAC73F100969F8A /* PlugTrade.app */;
@@ -115,6 +134,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				5422500D2EAC7FA600969F8A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				542514CE2ECD6D8200848F9F /* XCRemoteSwiftPackageReference "SDWebImage" */,
 			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 54224FFC2EAC73F100969F8A /* Products */;
@@ -274,9 +294,9 @@
 				DEVELOPMENT_TEAM = 5NDV9Z32G8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlugTrade/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -303,9 +323,9 @@
 				DEVELOPMENT_TEAM = 5NDV9Z32G8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlugTrade/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -352,6 +372,14 @@
 				minimumVersion = 12.4.0;
 			};
 		};
+		542514CE2ECD6D8200848F9F /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImage";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.21.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -364,6 +392,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5422500D2EAC7FA600969F8A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		542514CF2ECD6D8200848F9F /* SDWebImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 542514CE2ECD6D8200848F9F /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImage;
+		};
+		542514D12ECD6D8200848F9F /* SDWebImageMapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 542514CE2ECD6D8200848F9F /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImageMapKit;
 		};
 		54F6E2F32EB3E2C900E61528 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;

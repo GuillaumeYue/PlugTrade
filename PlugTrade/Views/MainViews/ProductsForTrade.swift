@@ -198,32 +198,27 @@ private struct ExpandedContent: View {
 
 // MARK: - Product Image
 private struct ProductImage: View {
+    @State private var imageIsLoading: Bool = false
     let urlString: String
 
     var body: some View {
-        AsyncImage(url: URL(string: urlString)) { phase in
-            switch phase {
-            case .empty:
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 200)
-                    .overlay(ProgressView())
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: 200)
-                    .clipped()
-                    .cornerRadius(8)
-            case .failure:
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 200)
-                    .overlay(Image(systemName: "photo"))
-            @unknown default:
-                EmptyView()
+        SDWebImageAsync(
+            url: URL(string: urlString),
+            placeholder: Image(systemName: "photo")
+        )
+        .frame(height: 200)
+        .clipped()
+        .cornerRadius(8)
+        .overlay(
+            Group {
+                if imageIsLoading {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .overlay(ProgressView())
+                }
             }
-        }
+        )
+
     }
 }
 
@@ -238,6 +233,9 @@ private struct EditTradeSheet: View {
     @State private var quantity: Int
     @State private var isSaving = false
     @State private var errorText: String?
+    @State private var lookingfor = ""
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
 
     init(item: Item) {
         self.item = item
@@ -245,6 +243,7 @@ private struct EditTradeSheet: View {
         _location = State(initialValue: item.location)
         _category = State(initialValue: item.category)
         _quantity = State(initialValue: item.quantity)
+        _lookingfor = State(initialValue: (item.lookingfor ?? []).joined(separator: ","))
     }
 
     var body: some View {
@@ -261,6 +260,19 @@ private struct EditTradeSheet: View {
                     }
 
                     Stepper("Quantity: \(quantity)", value: $quantity, in: 1...999)
+                    TextField("Looking For (comma separated)", text: $lookingfor)
+                        .onChange(of: lookingfor) { newValue in
+                            let parts = newValue.split(separator: ",").map{ $0.trimmingCharacters(in: .whitespaces)}
+                                .filter { !$0.isEmpty }
+                            
+                            if parts.count > 3 {
+                                let limit = parts.prefix(3).joined(separator: ", ")
+                                lookingfor = limit
+                                alertMessage = "Please enter no more than 3 items"
+                                showingAlert = true
+                                
+                            }
+                        }
                 }
 
                 if let errorText {
@@ -285,6 +297,18 @@ private struct EditTradeSheet: View {
 
     private func save() {
         guard let id = item.id else { return }
+        
+        var lookingForArray = lookingfor
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        if lookingForArray.count > 3 {
+            lookingForArray = Array(lookingForArray.prefix(3))
+            alertMessage = "You can only add up to 3 items in 'Looking For'. Extra items were removed."
+            showingAlert = true
+        }
+        
         isSaving = true
         errorText = nil
 
@@ -294,6 +318,7 @@ private struct EditTradeSheet: View {
             "location": location,
             "category": category.rawValue,
             "quantity": quantity,
+            "lookingfor": lookingForArray,
             "timestamp": Timestamp(date: Date()) // 可选：更新排序时间
         ]
 

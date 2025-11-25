@@ -32,50 +32,49 @@ struct CartView: View {
                     .frame(maxHeight: .infinity)
                 } else {
                     List {
-                        ForEach(cartManager.cartItems) { item in
+                        ForEach(cartManager.cartItems) { cartitem in
                             HStack(spacing: 12) {
-                                AsyncImage(url: URL(string: item.imageURL)) { phase in
-                                    switch phase {
-                                    case .empty:
-                                        Rectangle()
-                                            .fill(Color.gray.opacity(0.3))
-                                            .frame(width: 60, height: 60)
-                                            .overlay(ProgressView())
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 60, height: 60)
-                                            .clipped()
-                                    case .failure:
-                                        Rectangle()
-                                            .fill(Color.gray.opacity(0.3))
-                                            .frame(width: 60, height: 60)
-                                            .overlay(Image(systemName: "photo"))
-                                    @unknown default:
-                                        EmptyView()
-                                    }
-                                }
+                                
+                                SDWebImageAsync(
+                                    url: URL(string: cartitem.imageURL),
+                                    placeholder: Image(systemName: "photo")
+                                )
+                                .frame(width: 60, height: 60)
+                                .clipped()
                                 .cornerRadius(8)
                                 
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.title)
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(cartitem.title)
                                         .font(.headline)
-                                    Text("$\(item.price ?? 0.0, specifier: "%.0f" )")
+
+                                    Text("$\(cartitem.price, specifier: "%.0f")")
                                         .font(.subheadline)
                                         .foregroundColor(.blue)
+
+                                    CartQuantityPicker(
+                                        quantity: cartitem.quantity,
+                                        maxQuantity: cartitem.stock,
+                                        onIncrement: { cartManager.updateQuantity(cartItem: cartitem, amount: +1) },
+                                        onDecrement: { cartManager.updateQuantity(cartItem: cartitem, amount: -1) }
+                                    )
+                                    .padding(.top, 4)
                                 }
-                                
+
                                 Spacer()
-                                
+
                                 Button(action: {
-                                    cartManager.removeFromCart(item: item)
+                                    cartManager.removeFromCart(cartItem: cartitem)
                                 }) {
                                     Image(systemName: "trash")
                                         .foregroundColor(.red)
                                 }
+                                .buttonStyle(.borderless)
+                            }
+
                             }
                         }
+
+
                     }
                     
                     VStack(spacing: 16) {
@@ -93,7 +92,17 @@ struct CartView: View {
                         .padding(.horizontal)
                         
                         Button(action: {
-                            showCheckout = true
+                            cartManager.processAllPurchases{
+                                success in
+                                if success {
+                                    cartManager.emptyCart()
+                                    showCheckout = true
+                                }else{
+                                    print("Error")
+                                }
+                            }
+                           
+                           
                         }) {
                             Text("Checkout")
                                 .font(.headline)
@@ -112,15 +121,54 @@ struct CartView: View {
             .alert("Checkout", isPresented: $showCheckout) {
                 Button("OK") {}
             } message: {
-                Text("Checkout functionality coming soon!")
+                Text("Thank you for your purchase!")
             }
+        }
+    }
+
+
+
+    
+struct CartQuantityPicker: View {
+    let quantity: Int
+    let maxQuantity: Int
+    let onIncrement: () -> Void
+    let onDecrement: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Button(action: {
+                if quantity > 1 {
+                    onDecrement()
+                }
+            }) {
+                Image(systemName: "minus.circle.fill")
+                    .foregroundColor(.blue)
+            }
+            .buttonStyle(.borderless)
+            
+            Text("\(quantity)")
+                .font(.title3)
+                .frame(width: 28)
+            
+            Button(action: {
+                if quantity < maxQuantity {
+                    onIncrement()
+                }
+            }) {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundColor(.blue)
+            }
+            .buttonStyle(.borderless)
         }
     }
 }
 
+
+
 struct CartView_Previews: PreviewProvider {
     static var previews: some View {
         CartView()
-            .environmentObject(FirebaseCartManager())
+            .environmentObject(FirebaseCartManager.shared)
     }
 }

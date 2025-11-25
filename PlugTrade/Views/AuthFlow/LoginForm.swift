@@ -14,30 +14,59 @@ struct LoginForm: View {
     @StateObject var authManager = AuthService.shared
     
     var body: some View {
-        VStack{
-            Text("PlugTrade")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
             
-            Form{
-                Section("Login"){
-                    TextField("Email", text: $email)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .autocapitalization(.none)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
-                        .keyboardType(.emailAddress)
-                    
-                    
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
+            VStack{
+                Spacer()
+                    .frame(height: 10)
                 
-                if let error = error {
-                    Text(error)
-                        .foregroundColor(.red)
+                Image("back3")
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(Circle())
+                    .frame(width: 300, height: 300)
+                
+                Form{
+                    Section(header:
+                                HStack {
+                        Spacer()
+                                    Image(systemName: "person.fill")
+                                    Text("LOGIN")
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                        Spacer()
+                                }){
+                        TextField("Email", text: $email)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .autocapitalization(.none)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
+                            .keyboardType(.emailAddress)
+                        
+                        
+                        SecureField("Password", text: $password)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    
+                    if let error = error {
+                        Text(error)
+                            .foregroundColor(.red)
+                    }
+                    
+                    
+                        
+                    
+                    
                 }
+                .frame(width: 350, height: 280)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .scrollContentBackground(.hidden)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color.white.opacity(0.8), lineWidth: 1)
+                        )
                 
                 
                 Button("Login"){
@@ -65,15 +94,20 @@ struct LoginForm: View {
                 }
                 .padding(.horizontal)
                 .disabled(email.isEmpty || password.isEmpty)
+                .font(.headline)
+                    .padding()
+                    .frame(width: 200)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .listRowBackground(Color.clear)
                 
-                    
-                
+                Spacer()
                 
             }
-            
-            
-        }
-        .padding(.horizontal)
+            .padding(.horizontal)
+        
+       
         
       
         
@@ -82,4 +116,5 @@ struct LoginForm: View {
 
 #Preview {
     LoginForm()
+        
 }

@@ -9,26 +9,28 @@ import SwiftUI
 
 struct AvatarThumb: View {
     let url: String?
-    init(url: String?) { self.url = url }
+    
     var body: some View {
-        Group {
-            if let url, let u = URL(string: url) {
-                AsyncImage(url: u) { phase in
-                    if case .success(let img) = phase {
-                        img.resizable().scaledToFill()
-                    } else {
-                        Color(.tertiarySystemFill)
-                    }
-                }
-            } else {
-                Color(.tertiarySystemFill)
-            }
+        if let urlString = url, let imageURL = URL(string: urlString) {
+            SDWebImageAsync(
+                url: imageURL,
+                placeholder: Image(systemName: "person.fill")
+            )
+            .frame(width: 32, height: 32)
+            .clipShape(Circle())
+        } else {
+            // Fallback when no URL exists
+            Image(systemName: "person.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+                .padding(6)
+                .background(Color.blue.opacity(0.3))
+                .clipShape(Circle())
         }
-        .frame(width: 36, height: 36)
-        .clipShape(Circle())
-        .accessibilityHidden(true)
     }
 }
+
 struct Chip: View {
     let text: String
     init(text: String) { self.text = text }

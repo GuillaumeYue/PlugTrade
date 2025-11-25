@@ -6,8 +6,13 @@
 //
 
 
+//
+//  ItemRowView.swift
+//  PlugTrade
+//
 
 import SwiftUI
+import SDWebImage
 
 struct ItemRowView: View {
     let item: Item
@@ -15,29 +20,17 @@ struct ItemRowView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // MARK: - Image
-            AsyncImage(url: URL(string: item.imageURL)) { phase in
-                switch phase {
-                case .empty:
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 120)
-                        .overlay(ProgressView())
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: 120)
-                        .clipped()
-                case .failure:
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 120)
-                        .overlay(Image(systemName: "photo"))
-                @unknown default:
-                    EmptyView()
-                }
-            }
+            
+            // MARK: IMAGE (using your pattern)
+            SDWebImageAsync(
+                url: URL(string: item.imageURL),
+                placeholder: Image(systemName: "photo")
+            )
+            .frame(width: 200, height: 120)              // match the grid tile size
+            .aspectRatio(contentMode: .fit)              // your pattern
+            .clipped()                                   // prevents overflow
+            .cornerRadius(8)                             // keep original corner roundness
+            
             .overlay(alignment: .bottomTrailing) {
                 HStack(spacing: 16) {
                     Image(systemName: "heart")
@@ -50,10 +43,9 @@ struct ItemRowView: View {
                 .background(.ultraThinMaterial, in: Capsule())
                 .padding(8)
             }
-            .cornerRadius(8)
-
-            // MARK: - Price or Trade badge
-            HStack(alignment: .center) {
+            
+            // MARK: PRICE / TRADE BADGE
+            HStack {
                 if item.itemType == .forSale {
                     Text("$\(item.price ?? 0.0, specifier: "%.0f")")
                         .font(.headline)
@@ -78,19 +70,17 @@ struct ItemRowView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.green.gradient)
-                            .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
                     )
                 }
-
                 Spacer()
             }
-
-            // MARK: - Title
+            
+            // MARK: TITLE
             Text(item.title)
                 .font(.subheadline)
                 .lineLimit(2)
 
-            // MARK: - Location
+            // MARK: LOCATION
             HStack(spacing: 4) {
                 Image(systemName: "location.fill")
                     .font(.caption)
@@ -100,8 +90,7 @@ struct ItemRowView: View {
             .foregroundColor(.gray)
         }
         .padding([.horizontal, .bottom])
-        .aspectRatio(1, contentMode: .fit)
-        .frame(width: 200, height: 200)
+        .frame(width: 200, height: 230)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(
@@ -111,17 +100,15 @@ struct ItemRowView: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .shadow(color: .black.opacity(0.15), radius: 5, x: 0, y: 3)
+                .shadow(color: .black.opacity(0.10), radius: 4, x: 0, y: 3)
         )
         .padding(4)
-
-           
     }
 }
 
 struct ItemRowView_Previews: PreviewProvider {
     static var previews: some View {
         ItemRowView(item: SampleData.items[1])
-         
     }
 }
+
