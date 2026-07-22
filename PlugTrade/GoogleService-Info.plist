@@ -26,5 +26,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:1047532008081:ios:e0f436fdab812a1c5c8530</string>
+	<key>DATABASE_URL</key>
+	<string>https://plugtrade-ab3e4-default-rtdb.firebaseio.com</string>
 </dict>
 </plist>
